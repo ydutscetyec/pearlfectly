@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -18,6 +20,7 @@ export default function SignInPage() {
       redirect: false,
       email,
       password,
+      callbackUrl,
     });
 
     if (result?.error) {
@@ -25,7 +28,7 @@ export default function SignInPage() {
       return;
     }
 
-    router.push("/");
+    router.push(callbackUrl);
   };
 
   return (
@@ -72,14 +75,14 @@ export default function SignInPage() {
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
           <button
             type="button"
-            onClick={() => signIn("google")}
+            onClick={() => signIn("google", { callbackUrl })}
             className="rounded-full border border-[#B89A5E]/20 bg-white px-5 py-3 text-sm font-medium text-[#1B1411] transition hover:bg-[#F4F0EB]"
           >
             Google
           </button>
           <button
             type="button"
-            onClick={() => signIn("facebook")}
+            onClick={() => signIn("facebook", { callbackUrl })}
             className="rounded-full border border-[#B89A5E]/20 bg-white px-5 py-3 text-sm font-medium text-[#1B1411] transition hover:bg-[#F4F0EB]"
           >
             Facebook

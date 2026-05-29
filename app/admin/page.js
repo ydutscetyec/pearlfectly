@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Package,
@@ -16,9 +16,12 @@ import {
   Gem,
   Download,
   RotateCcw,
-  TrendingUp,
   Clock,
   X,
+  UploadCloud,
+  Sparkles,
+  ArrowRight,
+  ShieldCheck,
 } from "lucide-react";
 
 function formatPrice(value) {
@@ -26,70 +29,225 @@ function formatPrice(value) {
     style: "currency",
     currency: "PHP",
     maximumFractionDigits: 0,
-  }).format(value);
+  }).format(Number(value) || 0);
 }
 
-function SimpleBarChart({ data, height = 200 }) {
-  const maxValue = Math.max(...data.map((d) => d.value));
-  const barWidth = 40;
-  const gap = 20;
-  const padding = 30;
+function toNumber(value) {
+  return Number(value) || 0;
+}
+
+function getStatus(product) {
+  if (product.status) return product.status;
+  return toNumber(product.stock) <= 5 ? "Low Stock" : "Active";
+}
+
+function AdminBackground() {
+  return (
+    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#FFF8EF]">
+      <img
+        src="/background.png"
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover opacity-35"
+      />
+      <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(255,248,239,0.96),rgba(255,253,247,0.86),rgba(207,233,223,0.42))]" />
+      <div className="absolute -left-24 top-20 h-80 w-80 rounded-full bg-[#CFE9DF]/45 blur-3xl" />
+      <div className="absolute right-[-8rem] top-1/4 h-96 w-96 rounded-full bg-[#F4C6D3]/35 blur-3xl" />
+      <div className="absolute bottom-[-10rem] left-1/3 h-96 w-96 rounded-full bg-[#B89A5E]/15 blur-3xl" />
+      <div className="absolute inset-0 opacity-[0.03] mix-blend-multiply" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E')" }} />
+    </div>
+  );
+}
+
+function SectionLabel({ children }) {
+  return (
+    <div className="mb-3 flex items-center gap-3">
+      <span className="h-px w-10 bg-[#B89A5E]" />
+      <span className="text-xs font-semibold uppercase tracking-[0.28em] text-[#8A6A3F]">
+        {children}
+      </span>
+    </div>
+  );
+}
+
+function AdminHeader({ activeTab, setActiveTab, products, orders }) {
+  const tabs = [
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "inventory", label: "Inventory", icon: Package },
+    { id: "orders", label: "Orders", icon: ShoppingBag },
+  ];
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-[#B89A5E]/20 bg-[#FFF8EF]/72 shadow-sm shadow-black/5 backdrop-blur-2xl">
+      <div className="mx-auto max-w-[1720px] px-5 py-4 sm:px-8 lg:px-10">
+        <div className="grid gap-4 lg:grid-cols-[1fr_auto_1fr] lg:items-center">
+          <div className="flex items-center gap-4">
+            <div className="grid h-14 w-14 place-items-center rounded-full border border-[#B89A5E]/35 bg-[#FFFDF7]/90 p-1 shadow-md shadow-black/5">
+              <img
+                src="/logo.png"
+                alt="PEARLfectly logo"
+                className="h-full w-full rounded-full object-cover"
+              />
+            </div>
+            <div>
+              <p className="font-serif text-2xl leading-none tracking-[0.1em] text-[#4A3832]">
+                PEARL<span className="tracking-normal">fectly</span>
+              </p>
+              <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.34em] text-[#8A6A3F]">
+                Admin Atelier
+              </p>
+            </div>
+          </div>
+
+          <nav className="flex flex-wrap justify-start gap-2 rounded-full border border-[#B89A5E]/20 bg-[#F7E8DD]/75 p-2 shadow-inner lg:justify-center">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition ${
+                    isActive
+                      ? "bg-[#1B1411] text-[#FFF8EF] shadow-lg shadow-black/10"
+                      : "text-[#4A3832] hover:bg-[#FFFDF7]/90 hover:text-[#1B1411]"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="flex items-center gap-3 lg:justify-end">
+            <div className="hidden rounded-full border border-[#B89A5E]/20 bg-[#FFFDF7]/75 px-4 py-2 text-xs font-medium text-[#4A3832]/70 sm:block">
+              {products.length} products · {orders.length} orders
+            </div>
+            <a
+              href="/"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-[#B89A5E]/35 bg-[#FFFDF7]/75 px-5 py-3 text-sm font-semibold text-[#4A3832] transition hover:bg-[#1B1411] hover:text-[#FFF8EF]"
+            >
+              <Eye className="h-4 w-4" />
+              View Shop
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function StatCard({ title, value, note, icon: Icon }) {
+  return (
+    <div className="relative overflow-hidden rounded-[2rem] border border-white/60 bg-[#FFF8EF]/72 p-6 shadow-2xl shadow-black/5 backdrop-blur-xl">
+      <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-[#CFE9DF]/45 blur-2xl" />
+      <div className="relative flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm text-[#1B1411]/55">{title}</p>
+          <h3 className="mt-3 font-serif text-4xl text-[#1B1411]">{value}</h3>
+          {note && <p className="mt-2 text-xs text-[#1B1411]/45">{note}</p>}
+        </div>
+        {Icon && (
+          <div className="grid h-11 w-11 place-items-center rounded-full border border-[#B89A5E]/25 bg-[#FFFDF7]/80 text-[#B89A5E]">
+            <Icon className="h-5 w-5" />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Panel({ children, className = "" }) {
+  return (
+    <div className={`rounded-[2.25rem] border border-white/60 bg-[#FFF8EF]/74 shadow-2xl shadow-black/5 backdrop-blur-xl ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+const fieldClass =
+  "w-full rounded-2xl border border-[#D8C7A3]/55 bg-[#FFFDF7]/82 px-4 py-3 text-sm text-[#1B1411] outline-none transition placeholder:text-[#1B1411]/35 focus:border-[#B89A5E] focus:bg-[#FFFDF7] focus:ring-2 focus:ring-[#B89A5E]/15";
+
+function ImagePicker({ preview, onFile, label = "Drop image here" }) {
+  return (
+    <div
+      onDragOver={(event) => event.preventDefault()}
+      onDrop={(event) => {
+        event.preventDefault();
+        onFile(event.dataTransfer?.files?.[0]);
+      }}
+      className="rounded-[1.5rem] border-2 border-dashed border-[#B89A5E]/35 bg-[#FFFDF7]/60 p-6 text-center transition hover:border-[#B89A5E] hover:bg-[#FFFDF7]/85"
+    >
+      {preview ? (
+        <div className="flex flex-col items-center gap-3">
+          <img src={preview} alt="Product preview" className="h-24 w-24 rounded-2xl object-cover shadow-lg shadow-black/10" />
+          <label className="cursor-pointer text-xs font-semibold uppercase tracking-[0.18em] text-[#8A6A3F] underline underline-offset-4">
+            Change image
+            <input type="file" accept="image/*" onChange={(event) => onFile(event.target.files?.[0])} className="hidden" />
+          </label>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-2">
+          <div className="grid h-12 w-12 place-items-center rounded-full bg-[#CFE9DF]/70 text-[#4A3832]">
+            <UploadCloud className="h-5 w-5" />
+          </div>
+          <p className="text-sm font-semibold text-[#1B1411]">{label}</p>
+          <p className="text-xs text-[#1B1411]/50">
+            or{" "}
+            <label className="cursor-pointer text-[#8A6A3F] underline underline-offset-4">
+              click to select
+              <input type="file" accept="image/*" onChange={(event) => onFile(event.target.files?.[0])} className="hidden" />
+            </label>
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EmptyState({ title, copy }) {
+  return (
+    <div className="rounded-[2rem] border border-[#B89A5E]/20 bg-[#FFFDF7]/70 p-10 text-center">
+      <Sparkles className="mx-auto mb-4 h-8 w-8 text-[#B89A5E]" />
+      <p className="font-serif text-2xl text-[#1B1411]">{title}</p>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#1B1411]/55">{copy}</p>
+    </div>
+  );
+}
+
+function SimpleBarChart({ data, height = 210 }) {
+  const maxValue = Math.max(1, ...data.map((item) => Number(item.value) || 0));
+  const barWidth = 44;
+  const gap = 24;
+  const padding = 34;
   const width = data.length * (barWidth + gap) + padding * 2;
 
   return (
-    <svg
-      viewBox={`0 0 ${width} ${height}`}
-      className="w-full h-auto"
-      style={{ minHeight: `${height}px` }}
-    >
-      {/* Grid lines */}
-      {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
+    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto" style={{ minHeight: `${height}px` }}>
+      {[0, 0.25, 0.5, 0.75, 1].map((ratio) => (
         <line
-          key={`grid-${i}`}
+          key={ratio}
           x1={padding}
           y1={height - padding - (height - padding * 2) * ratio}
           x2={width - padding}
           y2={height - padding - (height - padding * 2) * ratio}
           stroke="#B89A5E"
-          strokeWidth="0.5"
-          opacity="0.3"
+          strokeWidth="0.6"
+          opacity="0.28"
         />
       ))}
-
-      {/* Bars */}
-      {data.map((item, i) => {
-        const barHeight = ((item.value / maxValue) * (height - padding * 2)) || 0;
-        const x = padding + i * (barWidth + gap);
+      {data.map((item, index) => {
+        const barHeight = ((Number(item.value) || 0) / maxValue) * (height - padding * 2);
+        const x = padding + index * (barWidth + gap);
         const y = height - padding - barHeight;
-
         return (
-          <g key={`bar-${i}`}>
-            <rect
-              x={x}
-              y={y}
-              width={barWidth}
-              height={barHeight}
-              fill="#B89A5E"
-              rx="4"
-            />
-            <text
-              x={x + barWidth / 2}
-              y={height - padding + 20}
-              textAnchor="middle"
-              fontSize="12"
-              fill="#1B1411"
-              fontWeight="500"
-            >
+          <g key={item.label}>
+            <rect x={x} y={y} width={barWidth} height={barHeight} fill="#B89A5E" rx="10" opacity="0.9" />
+            <text x={x + barWidth / 2} y={height - 10} textAnchor="middle" fontSize="11" fill="#4A3832" fontWeight="600">
               {item.label}
             </text>
-            <text
-              x={x + barWidth / 2}
-              y={y - 5}
-              textAnchor="middle"
-              fontSize="12"
-              fill="#1B1411"
-              fontWeight="600"
-            >
+            <text x={x + barWidth / 2} y={Math.max(16, y - 8)} textAnchor="middle" fontSize="13" fill="#1B1411" fontWeight="700">
               {item.value}
             </text>
           </g>
@@ -102,1019 +260,634 @@ function SimpleBarChart({ data, height = 200 }) {
 export default function AdminInventoryPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
 
   const [activeTab, setActiveTab] = useState("inventory");
   const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [form, setForm] = useState({
+  const [productCategory, setProductCategory] = useState("all");
+  const [sortBy, setSortBy] = useState("name");
+  const [orderSearch, setOrderSearch] = useState("");
+  const [orderFilter, setOrderFilter] = useState("all");
+  const [toast, setToast] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [sessionStats, setSessionStats] = useState({ added: 0, deleted: 0, updated: 0 });
+
+  const blankForm = {
     name: "",
     category: "Earrings",
     price: "",
     stock: "",
+    status: "Active",
+    description: "",
     image: "",
-  });
-  const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm] = useState({
-    name: "",
-    category: "",
-    price: "",
-    stock: "",
-    image: "",
-  });
+  };
+
+  const [form, setForm] = useState(blankForm);
   const [previewImage, setPreviewImage] = useState(null);
-  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [editForm, setEditForm] = useState(blankForm);
   const [editPreviewImage, setEditPreviewImage] = useState(null);
-  const [toast, setToast] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const [sortBy, setSortBy] = useState("name");
-  const [sessionStats, setSessionStats] = useState({
-    productsAdded: 0,
-    productsDeleted: 0,
-    ordersCreated: 0,
-  });
-  const [orderFilter, setOrderFilter] = useState("all");
-  const [orderSearch, setOrderSearch] = useState("");
-  const [productCategory, setProductCategory] = useState("all");
-  const [orders, setOrders] = useState([]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/signin");
+      router.push(`/signin?callbackUrl=${encodeURIComponent(pathname)}`);
       return;
     }
 
     if (status === "authenticated" && !session?.user?.isAdmin) {
-      // signed in but not an admin — redirect to home
       router.push("/");
-      return;
     }
-  }, [status, router]);
+  }, [status, session, router, pathname]);
 
   useEffect(() => {
     async function loadData() {
-      const [productsRes, ordersRes] = await Promise.all([
-        fetch("/api/products"),
-        fetch("/api/orders"),
-      ]);
+      try {
+        const [productsRes, ordersRes] = await Promise.all([
+          fetch("/api/products", { cache: "no-store" }),
+          fetch("/api/orders", { cache: "no-store" }),
+        ]);
 
-      if (productsRes.ok) {
-        setProducts(await productsRes.json());
+        if (productsRes.ok) {
+          const productData = await productsRes.json();
+          setProducts(Array.isArray(productData) ? productData : []);
+        }
+
+        if (ordersRes.ok) {
+          const orderData = await ordersRes.json();
+          setOrders(Array.isArray(orderData) ? orderData : []);
+        }
+      } catch (error) {
+        console.error("Unable to load admin data", error);
+        showToast("error", "Unable to load admin data.");
+      } finally {
+        setLoading(false);
       }
-
-      if (ordersRes.ok) {
-        setOrders(await ordersRes.json());
-      }
-
-      setLoadingProducts(false);
     }
 
     loadData();
   }, []);
 
-  function handleImageDrop(e, isEdit = false) {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const files = e.dataTransfer?.files || e.target?.files;
-    if (files && files[0]) {
-      const file = files[0];
-      if (file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          if (isEdit) {
-            setEditForm({ ...editForm, image: event.target.result });
-            setEditPreviewImage(event.target.result);
-          } else {
-            setForm({ ...form, image: event.target.result });
-            setPreviewImage(event.target.result);
-          }
-        };
-        reader.readAsDataURL(file);
+  function showToast(type, message) {
+    setToast({ type, message });
+    window.clearTimeout(showToast.timeoutId);
+    showToast.timeoutId = window.setTimeout(() => setToast(null), 3000);
+  }
+
+  function handleImageFile(file, isEdit = false) {
+    if (!file || !file.type?.startsWith("image/")) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const image = event.target.result;
+      if (isEdit) {
+        setEditForm((prev) => ({ ...prev, image }));
+        setEditPreviewImage(image);
+      } else {
+        setForm((prev) => ({ ...prev, image }));
+        setPreviewImage(image);
       }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function handleAddProduct(event) {
+    event.preventDefault();
+    if (!form.name.trim() || !form.price || !form.stock) {
+      showToast("error", "Please enter product name, price, and stock.");
+      return;
     }
-  }
 
-  function handleDragOver(e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
-  const totalProducts = products.length;
-  const totalStock = products.reduce((sum, item) => sum + Number(item.stock), 0);
-  const lowStock = products.filter((item) => Number(item.stock) <= 5).length;
-
-  async function handleAddProduct(e) {
-    e.preventDefault();
-
-    if (!form.name || !form.price || !form.stock) return;
+    const payload = {
+      name: form.name.trim(),
+      category: form.category,
+      price: Number(form.price),
+      stock: Number(form.stock),
+      status: form.status,
+      description: form.description,
+      image: form.image || "/weekly-pearl-box.png",
+    };
 
     const response = await fetch("/api/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: form.name,
-        category: form.category,
-        price: form.price,
-        stock: form.stock,
-        image: form.image,
-      }),
+      body: JSON.stringify(payload),
     });
 
-    if (!response.ok) return;
+    if (!response.ok) {
+      showToast("error", "Unable to add product.");
+      return;
+    }
 
     const newProduct = await response.json();
     setProducts((prev) => [newProduct, ...prev]);
-    setSessionStats((prev) => ({ ...prev, productsAdded: prev.productsAdded + 1 }));
-
-    setForm({
-      name: "",
-      category: "Earrings",
-      price: "",
-      stock: "",
-      image: "",
-    });
+    setSessionStats((prev) => ({ ...prev, added: prev.added + 1 }));
+    setForm(blankForm);
     setPreviewImage(null);
-
-    setToast({ type: "success", message: `Product "${newProduct.name}" added successfully!` });
-    setTimeout(() => setToast(null), 3000);
-  }
-
-  async function handleDeleteProduct(id) {
-    setDeleteConfirm(null);
-    const product = products.find((p) => p.id === id);
-    const response = await fetch(`/api/products/${id}`, {
-      method: "DELETE",
-    });
-
-    if (!response.ok) return;
-
-    setProducts((prev) => prev.filter((product) => product.id !== id));
-    setSessionStats((prev) => ({ ...prev, productsDeleted: prev.productsDeleted + 1 }));
-    setToast({ type: "success", message: `Product "${product.name}" deleted successfully!` });
-    setTimeout(() => setToast(null), 3000);
+    showToast("success", `Product "${newProduct.name}" added.`);
   }
 
   function handleStartEdit(product) {
-    setEditingId(product.id);
+    setEditingProduct(product);
     setEditForm({
-      name: product.name,
-      category: product.category,
-      price: product.price,
-      stock: product.stock,
-      image: product.image,
+      name: product.name ?? "",
+      category: product.category ?? "Earrings",
+      price: product.price ?? "",
+      stock: product.stock ?? "",
+      status: getStatus(product),
+      description: product.description ?? "",
+      image: product.image ?? "",
     });
-    setEditPreviewImage(product.image);
+    setEditPreviewImage(product.image || null);
   }
 
-  async function handleUpdateProduct(e) {
-    e.preventDefault();
+  async function handleUpdateProduct(event) {
+    event.preventDefault();
+    if (!editingProduct) return;
 
-    if (!editForm.name || !editForm.price || !editForm.stock) return;
+    if (!editForm.name.trim() || !editForm.price || !editForm.stock) {
+      showToast("error", "Please enter product name, price, and stock.");
+      return;
+    }
 
-    const response = await fetch(`/api/products/${editingId}`, {
+    const payload = {
+      name: editForm.name.trim(),
+      category: editForm.category,
+      price: Number(editForm.price),
+      stock: Number(editForm.stock),
+      status: editForm.status,
+      description: editForm.description,
+      image: editForm.image || "/weekly-pearl-box.png",
+    };
+
+    const response = await fetch(`/api/products/${editingProduct.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: editForm.name,
-        category: editForm.category,
-        price: editForm.price,
-        stock: editForm.stock,
-        image: editForm.image,
-      }),
+      body: JSON.stringify(payload),
     });
 
-    if (!response.ok) return;
+    if (!response.ok) {
+      showToast("error", "Unable to update product.");
+      return;
+    }
 
     const updatedProduct = await response.json();
-
     setProducts((prev) =>
       prev.map((product) =>
-        product.id === editingId ? updatedProduct : product
+        Number(product.id) === Number(editingProduct.id) ? updatedProduct : product
       )
     );
-
-    setToast({ type: "success", message: `Product updated successfully!` });
-    setTimeout(() => setToast(null), 3000);
-
-    setEditingId(null);
-    setEditForm({
-      name: "",
-      category: "",
-      price: "",
-      stock: "",
-      image: "",
-    });
-  }
-
-  function handleCancelEdit() {
-    setEditingId(null);
-    setEditForm({
-      name: "",
-      category: "",
-      price: "",
-      stock: "",
-      image: "",
-    });
+    setSessionStats((prev) => ({ ...prev, updated: prev.updated + 1 }));
+    setEditingProduct(null);
     setEditPreviewImage(null);
+    showToast("success", "Product updated.");
   }
+
+  async function handleDeleteProduct(id) {
+    if (id == null) return;
+
+    const product = products.find((item) => Number(item.id) === Number(id));
+    const response = await fetch(`/api/products/${id}`, { method: "DELETE" });
+
+    if (!response.ok) {
+      showToast("error", "Unable to delete product.");
+      return;
+    }
+
+    setProducts((prev) => prev.filter((item) => Number(item.id) !== Number(id)));
+    setSessionStats((prev) => ({ ...prev, deleted: prev.deleted + 1 }));
+    setDeleteConfirm(null);
+    showToast("success", `Product "${product?.name ?? "item"}" deleted.`);
+  }
+
+  const totalProducts = products.length;
+  const totalStock = products.reduce((sum, item) => sum + toNumber(item.stock), 0);
+  const lowStock = products.filter((item) => toNumber(item.stock) <= 5).length;
+  const totalRevenue = orders.reduce((sum, order) => sum + toNumber(order.total), 0);
+
+  const categories = useMemo(() => {
+    return ["all", ...Array.from(new Set(products.map((product) => product.category).filter(Boolean)))];
+  }, [products]);
 
   const sortedAndFilteredProducts = useMemo(() => {
-    let filtered = products.filter(
-      (product) =>
-        product.name.toLowerCase().includes(search.toLowerCase()) &&
-        (productCategory === "all" || product.category === productCategory)
-    );
-
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "stock-low":
-          return a.stock - b.stock;
-        case "stock-high":
-          return b.stock - a.stock;
-        case "price-low":
-          return a.price - b.price;
-        case "price-high":
-          return b.price - a.price;
-        default:
-          return a.name.localeCompare(b.name);
-      }
-    });
-
-    return filtered;
-  }, [products, search, sortBy, productCategory]);
+    return [...products]
+      .filter((product) => {
+        const matchesSearch = product.name?.toLowerCase().includes(search.toLowerCase());
+        const matchesCategory = productCategory === "all" || product.category === productCategory;
+        return matchesSearch && matchesCategory;
+      })
+      .sort((a, b) => {
+        switch (sortBy) {
+          case "stock-low":
+            return toNumber(a.stock) - toNumber(b.stock);
+          case "stock-high":
+            return toNumber(b.stock) - toNumber(a.stock);
+          case "price-low":
+            return toNumber(a.price) - toNumber(b.price);
+          case "price-high":
+            return toNumber(b.price) - toNumber(a.price);
+          default:
+            return String(a.name ?? "").localeCompare(String(b.name ?? ""));
+        }
+      });
+  }, [products, search, productCategory, sortBy]);
 
   const filteredOrders = useMemo(() => {
-    return orders.filter(
-      (order) =>
+    return orders.filter((order) => {
+      const customer = String(order.customer ?? "").toLowerCase();
+      const id = String(order.id ?? "").toLowerCase();
+      return (
         (orderFilter === "all" || order.status === orderFilter) &&
-        (order.customer.toLowerCase().includes(orderSearch.toLowerCase()) ||
-          order.id.toLowerCase().includes(orderSearch.toLowerCase()))
-    );
+        (customer.includes(orderSearch.toLowerCase()) || id.includes(orderSearch.toLowerCase()))
+      );
+    });
   }, [orders, orderFilter, orderSearch]);
 
   function exportAsCSV(dataType) {
-    let csv = "";
+    const rows = [];
+
     if (dataType === "products") {
-      csv = "Product Name,Category,Price,Stock,Status\n";
-      products.forEach((p) => {
-        csv += `"${p.name}","${p.category}",${p.price},${p.stock},"${p.status}"\n`;
-      });
+      rows.push(["Product Name", "Category", "Price", "Stock", "Status"]);
+      products.forEach((product) => rows.push([product.name, product.category, product.price, product.stock, getStatus(product)]));
     } else {
-      csv = "Order ID,Customer,Items,Total,Date,Status\n";
-      orders.forEach((o) => {
-        csv += `"${o.id}","${o.customer}",${o.items},${o.total},"${o.date}","${o.status}"\n`;
-      });
+      rows.push(["Order ID", "Customer", "Items", "Total", "Date", "Status"]);
+      orders.forEach((order) => rows.push([order.id, order.customer, order.items, order.total, order.date, order.status]));
     }
 
+    const csv = rows.map((row) => row.map((cell) => `"${String(cell ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${dataType}-export-${new Date().toISOString().split("T")[0]}.csv`;
+    a.download = `${dataType}-export-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
-    
-    setToast({ type: "success", message: `${dataType} exported successfully!` });
-    setTimeout(() => setToast(null), 3000);
+    window.URL.revokeObjectURL(url);
+    showToast("success", `${dataType} exported.`);
   }
 
   const chartData = [
-    { label: "Products", value: products.length },
-    { label: "Low Stock", value: products.filter((p) => p.stock <= 5).length },
+    { label: "Products", value: totalProducts },
+    { label: "Stock", value: totalStock },
     { label: "Orders", value: orders.length },
-    { label: "Completed", value: orders.filter((o) => o.status === "Completed").length },
+    { label: "Low", value: lowStock },
   ];
 
+  if (status === "loading" || loading) {
+    return (
+      <main className="relative grid min-h-screen place-items-center overflow-hidden bg-[#FFF8EF] text-[#1B1411]">
+        <AdminBackground />
+        <div className="rounded-[2.5rem] border border-white/60 bg-[#FFF8EF]/76 p-10 text-center shadow-2xl shadow-black/5 backdrop-blur-xl">
+          <Gem className="mx-auto mb-4 h-9 w-9 text-[#B89A5E]" />
+          <p className="font-serif text-3xl">Opening the atelier...</p>
+          <p className="mt-2 text-sm text-[#1B1411]/55">Loading your admin workspace.</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
-    <main className="min-h-screen bg-[#FFF8EF] text-[#1B1411]">
-      <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
-        <aside className="hidden border-r border-[#B89A5E]/20 bg-[#1B1411] p-6 text-[#FFF8EF] lg:block">
-          <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-full bg-[#B89A5E]/20 text-[#B89A5E]">
-              <Gem className="h-6 w-6" />
+    <main className="relative min-h-screen overflow-hidden text-[#1B1411]">
+      <AdminBackground />
+      <AdminHeader activeTab={activeTab} setActiveTab={setActiveTab} products={products} orders={orders} />
+
+      <section className="mx-auto max-w-[1720px] px-5 py-8 sm:px-8 lg:px-10">
+        {activeTab === "dashboard" && (
+          <div>
+            <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+              <div>
+                <SectionLabel>Admin / Dashboard</SectionLabel>
+                <h1 className="max-w-3xl font-serif text-5xl leading-tight text-[#1B1411] sm:text-6xl">
+                  Welcome back to your pearl atelier.
+                </h1>
+                <p className="mt-5 max-w-2xl text-sm leading-7 text-[#1B1411]/65">
+                  A soft luxury control center for your products, orders, and shop activity.
+                </p>
+              </div>
+              <a href="#inventory" onClick={() => setActiveTab("inventory")} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1B1411] px-6 py-3 text-sm font-semibold text-[#FFF8EF] shadow-xl shadow-black/10 transition hover:bg-[#B89A5E] hover:text-[#1B1411]">
+                Manage products <ArrowRight className="h-4 w-4" />
+              </a>
             </div>
 
-            <div>
-              <h1 className="font-serif text-2xl tracking-wide">PEARLfectly</h1>
-              <p className="text-xs uppercase tracking-[0.3em] text-white/40">
-                Admin Panel
-              </p>
+            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <StatCard title="Total Products" value={totalProducts} icon={Package} />
+              <StatCard title="Total Orders" value={orders.length} icon={ShoppingBag} />
+              <StatCard title="Total Revenue" value={formatPrice(totalRevenue)} icon={Gem} />
+              <StatCard title="Low Stock Items" value={lowStock} icon={AlertCircle} />
             </div>
-          </div>
 
-          <nav className="mt-10 space-y-2">
-            <button
-              onClick={() => setActiveTab("dashboard")}
-              className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
-                activeTab === "dashboard"
-                  ? "bg-[#B89A5E] text-[#1B1411]"
-                  : "text-white/70 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <LayoutDashboard className="h-5 w-5" />
-              Dashboard
-            </button>
-
-            <button
-              onClick={() => setActiveTab("inventory")}
-              className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
-                activeTab === "inventory"
-                  ? "bg-[#B89A5E] text-[#1B1411]"
-                  : "text-white/70 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <Package className="h-5 w-5" />
-              Inventory
-            </button>
-
-            <button
-              onClick={() => setActiveTab("orders")}
-              className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
-                activeTab === "orders"
-                  ? "bg-[#B89A5E] text-[#1B1411]"
-                  : "text-white/70 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              <ShoppingBag className="h-5 w-5" />
-              Orders
-            </button>
-          </nav>
-
-          <div className="mt-10 rounded-3xl border border-white/10 bg-white/[0.05] p-5">
-            <p className="text-sm font-medium text-[#B89A5E]">Frontend only</p>
-            <p className="mt-2 text-xs leading-6 text-white/50">
-              This page is not connected to a database yet. Changes will reset
-              after refreshing.
-            </p>
-          </div>
-        </aside>
-
-        <section className="p-5 sm:p-8 lg:p-10">
-          {activeTab === "dashboard" && (
-            <div>
-              <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8A6A3F]">
-                    Admin / Dashboard
-                  </p>
-                  <h2 className="mt-2 font-serif text-4xl sm:text-5xl">
-                    Welcome Back
-                  </h2>
-                  <p className="mt-3 max-w-2xl text-sm leading-7 text-[#1B1411]/60">
-                    Here's an overview of your pearl business performance.
-                  </p>
-                </div>
-
-                <a
-                  href="/"
-                  className="inline-flex items-center justify-center rounded-full border border-[#B89A5E]/40 px-5 py-3 text-sm font-medium transition hover:bg-[#CFE9DF]/70"
-                >
-                  <Eye className="mr-2 h-4 w-4" />
-                  View Shop
-                </a>
-              </div>
-
-              <div className="mt-8 grid gap-4 md:grid-cols-4">
-                <div className="rounded-3xl border border-[#B89A5E]/20 bg-white/70 p-6 shadow-xl shadow-black/5">
-                  <p className="text-sm text-[#1B1411]/50">Total Products</p>
-                  <h3 className="mt-3 font-serif text-4xl">{products.length}</h3>
-                </div>
-
-                <div className="rounded-3xl border border-[#B89A5E]/20 bg-white/70 p-6 shadow-xl shadow-black/5">
-                  <p className="text-sm text-[#1B1411]/50">Total Orders</p>
-                  <h3 className="mt-3 font-serif text-4xl">{orders.length}</h3>
-                </div>
-
-                <div className="rounded-3xl border border-[#B89A5E]/20 bg-white/70 p-6 shadow-xl shadow-black/5">
-                  <p className="text-sm text-[#1B1411]/50">Total Revenue</p>
-                  <h3 className="mt-3 font-serif text-4xl">
-                    {formatPrice(
-                      orders.reduce((sum, order) => sum + order.total, 0)
-                    )}
-                  </h3>
-                </div>
-
-                <div className="rounded-3xl border border-[#B89A5E]/20 bg-white/70 p-6 shadow-xl shadow-black/5">
-                  <p className="text-sm text-[#1B1411]/50">Low Stock Items</p>
-                  <h3 className="mt-3 flex items-center gap-2 font-serif text-4xl">
-                    {products.filter((item) => Number(item.stock) <= 5).length}
-                    {products.filter((item) => Number(item.stock) <= 5).length >
-                      0 && (
-                      <AlertCircle className="h-6 w-6 text-[#B89A5E]" />
-                    )}
-                  </h3>
-                </div>
-              </div>
-
-              <div className="mt-8 grid gap-6 lg:grid-cols-2">
-                <div className="rounded-[2rem] border border-[#B89A5E]/20 bg-white/75 p-6 shadow-xl shadow-black/5">
-                  <div className="mb-6">
-                    <h3 className="font-serif text-2xl">Business Analytics</h3>
-                    <p className="mt-1 text-sm text-[#1B1411]/50">
-                      Overview of your inventory and orders
-                    </p>
-                  </div>
+            <div className="mt-8 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+              <Panel className="p-6">
+                <SectionLabel>Business Analytics</SectionLabel>
+                <h2 className="font-serif text-3xl">Inventory and order overview</h2>
+                <p className="mt-2 text-sm text-[#1B1411]/55">Quick activity snapshot from your local shop data.</p>
+                <div className="mt-8">
                   <SimpleBarChart data={chartData} />
                 </div>
+              </Panel>
 
-                <div className="rounded-[2rem] border border-[#B89A5E]/20 bg-white/75 p-6 shadow-xl shadow-black/5">
-                  <div className="mb-6">
-                    <h3 className="font-serif text-2xl">Session Activity</h3>
-                    <p className="mt-1 text-sm text-[#1B1411]/50">
-                      Changes made in this session
-                    </p>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between rounded-2xl bg-[#FFF8EF] p-4">
+              <Panel className="p-6">
+                <SectionLabel>Session Activity</SectionLabel>
+                <h2 className="font-serif text-3xl">Recent changes</h2>
+                <div className="mt-6 space-y-3">
+                  {[
+                    [Plus, "Products Added", sessionStats.added, "bg-[#CFE9DF]/75"],
+                    [Pencil, "Products Updated", sessionStats.updated, "bg-[#FFFDF7]/85"],
+                    [Trash2, "Products Deleted", sessionStats.deleted, "bg-[#F4C6D3]/65"],
+                  ].map(([Icon, label, value, bg]) => (
+                    <div key={label} className="flex items-center justify-between rounded-[1.5rem] border border-[#B89A5E]/15 bg-[#FFFDF7]/65 p-4">
                       <div className="flex items-center gap-3">
-                        <div className="grid h-10 w-10 place-items-center rounded-full bg-[#CFE9DF]">
-                          <Plus className="h-5 w-5" />
+                        <div className={`grid h-10 w-10 place-items-center rounded-full ${bg}`}>
+                          <Icon className="h-5 w-5" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium">Products Added</p>
-                          <p className="text-xs text-[#1B1411]/50">In this session</p>
+                          <p className="text-sm font-semibold">{label}</p>
+                          <p className="text-xs text-[#1B1411]/45">This session</p>
                         </div>
                       </div>
-                      <p className="font-serif text-2xl">{sessionStats.productsAdded}</p>
+                      <p className="font-serif text-2xl">{value}</p>
                     </div>
-                    <div className="flex items-center justify-between rounded-2xl bg-[#FFF8EF] p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="grid h-10 w-10 place-items-center rounded-full bg-[#F4C6D3]/60">
-                          <Trash2 className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">Products Deleted</p>
-                          <p className="text-xs text-[#1B1411]/50">In this session</p>
-                        </div>
-                      </div>
-                      <p className="font-serif text-2xl">{sessionStats.productsDeleted}</p>
-                    </div>
-                    <div className="flex items-center justify-between rounded-2xl bg-[#FFF8EF] p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="grid h-10 w-10 place-items-center rounded-full bg-[#CFE9DF]">
-                          <Clock className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">Updates Made</p>
-                          <p className="text-xs text-[#1B1411]/50">Product modifications</p>
-                        </div>
-                      </div>
-                      <p className="font-serif text-2xl">
-                        {sessionStats.productsAdded + sessionStats.productsDeleted}
-                      </p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "inventory" && (
-            <div>
-              <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8A6A3F]">
-                    Admin / Inventory
-                  </p>
-                  <h2 className="mt-2 font-serif text-4xl sm:text-5xl">
-                    Product Management
-                  </h2>
-                  <p className="mt-3 max-w-2xl text-sm leading-7 text-[#1B1411]/60">
-                    Manage pearl products, prices, stock, and visibility before
-                    connecting this page to your database.
-                  </p>
-                </div>
-
-                <a
-                  href="/"
-                  className="inline-flex items-center justify-center rounded-full border border-[#B89A5E]/40 px-5 py-3 text-sm font-medium transition hover:bg-[#CFE9DF]/70"
-                >
-                  <Eye className="mr-2 h-4 w-4" />
-                  View Shop
-                </a>
-              </div>
-
-              <div className="mt-8 grid gap-4 md:grid-cols-3">
-                <div className="rounded-3xl border border-[#B89A5E]/20 bg-white/70 p-6 shadow-xl shadow-black/5">
-                  <p className="text-sm text-[#1B1411]/50">Total Products</p>
-                  <h3 className="mt-3 font-serif text-4xl">{products.length}</h3>
-                </div>
-
-                <div className="rounded-3xl border border-[#B89A5E]/20 bg-white/70 p-6 shadow-xl shadow-black/5">
-                  <p className="text-sm text-[#1B1411]/50">Total Stock</p>
-                  <h3 className="mt-3 font-serif text-4xl">
-                    {products.reduce((sum, item) => sum + Number(item.stock), 0)}
-                  </h3>
-                </div>
-
-                <div className="rounded-3xl border border-[#B89A5E]/20 bg-white/70 p-6 shadow-xl shadow-black/5">
-                  <p className="text-sm text-[#1B1411]/50">Low Stock Items</p>
-                  <h3 className="mt-3 flex items-center gap-2 font-serif text-4xl">
-                    {products.filter((item) => Number(item.stock) <= 5).length}
-                    {products.filter((item) => Number(item.stock) <= 5).length >
-                      0 && (
-                      <AlertCircle className="h-6 w-6 text-[#B89A5E]" />
-                    )}
-                  </h3>
-                </div>
-              </div>
-
-              <div className="mt-8 grid gap-6 xl:grid-cols-[420px_1fr]">
-                <form
-                  onSubmit={handleAddProduct}
-                  className="rounded-[2rem] border border-[#B89A5E]/20 bg-white/75 p-6 shadow-xl shadow-black/5"
-                >
-                  <div className="mb-6 flex items-center justify-between">
-                    <div>
-                      <h3 className="font-serif text-3xl">Add Product</h3>
-                      <p className="mt-1 text-sm text-[#1B1411]/50">
-                        Temporary frontend form
-                      </p>
-                    </div>
-
-                    <div className="grid h-11 w-11 place-items-center rounded-full bg-[#CFE9DF]">
-                      <Plus className="h-5 w-5" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                <input
-                  className="w-full rounded-2xl border border-[#B89A5E]/20 bg-[#FFF8EF] px-4 py-3 text-sm outline-none focus:border-[#B89A5E]"
-                  placeholder="Product name"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                />
-
-                <select
-                  className="w-full rounded-2xl border border-[#B89A5E]/20 bg-[#FFF8EF] px-4 py-3 text-sm outline-none focus:border-[#B89A5E]"
-                  value={form.category}
-                  onChange={(e) =>
-                    setForm({ ...form, category: e.target.value })
-                  }
-                >
-                  <option>Earrings</option>
-                  <option>Necklaces</option>
-                  <option>Bracelets</option>
-                  <option>Rings</option>
-                </select>
-
-                <input
-                  className="w-full rounded-2xl border border-[#B89A5E]/20 bg-[#FFF8EF] px-4 py-3 text-sm outline-none focus:border-[#B89A5E]"
-                  placeholder="Price"
-                  type="number"
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: e.target.value })}
-                />
-
-                <input
-                  className="w-full rounded-2xl border border-[#B89A5E]/20 bg-[#FFF8EF] px-4 py-3 text-sm outline-none focus:border-[#B89A5E]"
-                  placeholder="Stock"
-                  type="number"
-                  value={form.stock}
-                  onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                />
-
-                <div
-                  onDrop={(e) => handleImageDrop(e, false)}
-                  onDragOver={handleDragOver}
-                  className="rounded-2xl border-2 border-dashed border-[#B89A5E]/40 bg-[#FFF8EF] p-6 text-center transition hover:border-[#B89A5E] hover:bg-[#FFF8EF]/80 cursor-pointer"
-                >
-                  {previewImage ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <img
-                        src={previewImage}
-                        alt="Preview"
-                        className="h-20 w-20 rounded-xl object-cover"
-                      />
-                      <p className="text-xs text-[#1B1411]/60">Image selected</p>
-                      <label className="text-xs text-[#8A6A3F] underline cursor-pointer">
-                        Change image
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleImageDrop(e, false)}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
-                  ) : (
-                    <div>
-                      <p className="text-sm font-medium text-[#1B1411]">
-                        Drop image here
-                      </p>
-                      <p className="mt-1 text-xs text-[#1B1411]/50">
-                        or{" "}
-                        <label className="text-[#8A6A3F] underline cursor-pointer">
-                          click to select
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleImageDrop(e, false)}
-                            className="hidden"
-                          />
-                        </label>
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <button className="w-full rounded-full bg-[#1B1411] px-6 py-4 text-sm font-medium text-[#FFF8EF] transition hover:bg-[#B89A5E] hover:text-[#1B1411]">
-                  Add Product
-                </button>
-              </div>
-            </form>
-
-            <div className="rounded-[2rem] border border-[#B89A5E]/20 bg-white/75 p-6 shadow-xl shadow-black/5">
-              <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                <div>
-                  <h3 className="font-serif text-3xl">Inventory List</h3>
-                  <p className="mt-1 text-sm text-[#1B1411]/50">
-                    {sortedAndFilteredProducts.length} product{sortedAndFilteredProducts.length !== 1 ? "s" : ""} total
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="flex items-center gap-2 rounded-full border border-[#B89A5E]/20 bg-[#FFF8EF] px-4 py-3">
-                    <Search className="h-4 w-4 text-[#8A6A3F]" />
-                    <input
-                      className="bg-transparent text-sm outline-none placeholder:text-[#1B1411]/40"
-                      placeholder="Search product..."
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                    />
-                  </div>
-                  <button
-                    onClick={() => {
-                      setSearch("");
-                      setProductCategory("all");
-                      setSortBy("name");
-                    }}
-                    className="grid h-10 w-10 place-items-center rounded-full border border-[#B89A5E]/40 transition hover:bg-[#FFF8EF]"
-                    title="Reset filters"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => exportAsCSV("products")}
-                    className="inline-flex items-center gap-2 rounded-full border border-[#B89A5E]/40 px-4 py-2 text-sm transition hover:bg-[#FFF8EF]"
-                  >
-                    <Download className="h-4 w-4" />
-                    Export
-                  </button>
-                </div>
-              </div>
-
-              <div className="mb-6 grid gap-3 sm:grid-cols-2">
-                <select
-                  value={productCategory}
-                  onChange={(e) => setProductCategory(e.target.value)}
-                  className="rounded-2xl border border-[#B89A5E]/20 bg-[#FFF8EF] px-4 py-3 text-sm outline-none focus:border-[#B89A5E]"
-                >
-                  <option value="all">All Categories</option>
-                  <option value="Earrings">Earrings</option>
-                  <option value="Necklaces">Necklaces</option>
-                  <option value="Bracelets">Bracelets</option>
-                  <option value="Rings">Rings</option>
-                </select>
-
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="rounded-2xl border border-[#B89A5E]/20 bg-[#FFF8EF] px-4 py-3 text-sm outline-none focus:border-[#B89A5E]"
-                >
-                  <option value="name">Sort by Name (A-Z)</option>
-                  <option value="stock-low">Sort by Stock (Low to High)</option>
-                  <option value="stock-high">Sort by Stock (High to Low)</option>
-                  <option value="price-low">Sort by Price (Low to High)</option>
-                  <option value="price-high">Sort by Price (High to Low)</option>
-                </select>
-              </div>
-
-              <div className="mt-6 overflow-x-auto">
-                <table className="w-full min-w-[720px] border-separate border-spacing-y-3 text-left">
-                  <thead>
-                    <tr className="text-xs uppercase tracking-[0.2em] text-[#1B1411]/40">
-                      <th className="px-4">Product</th>
-                      <th className="px-4">Category</th>
-                      <th className="px-4">Price</th>
-                      <th className="px-4">Stock</th>
-                      <th className="px-4">Status</th>
-                      <th className="px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {sortedAndFilteredProducts.map((product) => (
-                      <tr
-                        key={product.id}
-                        className="rounded-2xl bg-[#FFF8EF] text-sm shadow-sm"
-                      >
-                        <td className="rounded-l-2xl px-4 py-4">
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={product.image}
-                              alt={product.name}
-                              className="h-14 w-14 rounded-xl object-cover"
-                            />
-                            <div>
-                              <p className="font-medium">{product.name}</p>
-                              <p className="text-xs text-[#1B1411]/45">
-                                ID: {product.id}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td className="px-4 py-4">{product.category}</td>
-                        <td className="px-4 py-4">
-                          {formatPrice(product.price)}
-                        </td>
-                        <td className="px-4 py-4">{product.stock}</td>
-                        <td className="px-4 py-4">
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-medium ${
-                              product.status === "Low Stock"
-                                ? "bg-[#F4C6D3]/60 text-[#1B1411]"
-                                : "bg-[#CFE9DF] text-[#1B1411]"
-                            }`}
-                          >
-                            {product.status}
-                          </span>
-                        </td>
-
-                        <td className="rounded-r-2xl px-4 py-4">
-                          <div className="flex justify-end gap-2">
-                            <button
-                              onClick={() => handleStartEdit(product)}
-                              className="grid h-9 w-9 place-items-center rounded-full bg-[#CFE9DF]/70 transition hover:bg-[#CFE9DF]"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </button>
-
-                            <button
-                              onClick={() => setDeleteConfirm(product.id)}
-                              className="grid h-9 w-9 place-items-center rounded-full bg-[#F4C6D3]/70 transition hover:bg-[#F4C6D3]"
-                              title="Delete product"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                {sortedAndFilteredProducts.length === 0 && (
-                  <div className="py-16 text-center text-sm text-[#1B1411]/50">
-                    No products found.
-                  </div>
-                )}
-              </div>
+              </Panel>
             </div>
           </div>
-            </div>
-          )}
+        )}
 
-          {activeTab === "orders" && (
-            <div>
-              <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#8A6A3F]">
-                    Admin / Orders
-                  </p>
-                  <h2 className="mt-2 font-serif text-4xl sm:text-5xl">
-                    Order Management
-                  </h2>
-                  <p className="mt-3 max-w-2xl text-sm leading-7 text-[#1B1411]/60">
-                    Track and manage all customer orders from your pearl shop.
-                  </p>
+        {activeTab === "inventory" && (
+          <div id="inventory">
+            <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+              <div>
+                <SectionLabel>Admin / Inventory</SectionLabel>
+                <h1 className="max-w-3xl font-serif text-5xl leading-tight text-[#1B1411] sm:text-6xl">
+                  Product management, softened.
+                </h1>
+                <p className="mt-5 max-w-2xl text-sm leading-7 text-[#1B1411]/65">
+                  Add, edit, and organize your pearl products using the same soft ivory, cocoa, mint, blush, and gold language as your shop.
+                </p>
+              </div>
+              <button onClick={() => exportAsCSV("products")} className="inline-flex items-center justify-center gap-2 rounded-full border border-[#B89A5E]/35 bg-[#FFFDF7]/75 px-5 py-3 text-sm font-semibold text-[#4A3832] transition hover:bg-[#1B1411] hover:text-[#FFF8EF]">
+                <Download className="h-4 w-4" /> Export Products
+              </button>
+            </div>
+
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              <StatCard title="Total Products" value={totalProducts} icon={Package} />
+              <StatCard title="Total Stock" value={totalStock} icon={TrendingIcon} />
+              <StatCard title="Low Stock Items" value={lowStock} icon={AlertCircle} />
+            </div>
+
+            <div className="mt-8 grid gap-6 xl:grid-cols-[420px_1fr]">
+              <Panel className="p-6">
+                <div className="mb-6 flex items-start justify-between gap-4">
+                  <div>
+                    <SectionLabel>Add Product</SectionLabel>
+                    <h2 className="font-serif text-3xl">New pearl piece</h2>
+                    <p className="mt-1 text-sm text-[#1B1411]/55">Creates a product in your local product API.</p>
+                  </div>
+                  <div className="grid h-11 w-11 place-items-center rounded-full bg-[#CFE9DF]/75 text-[#4A3832]">
+                    <Plus className="h-5 w-5" />
+                  </div>
                 </div>
 
-                <a
-                  href="/"
-                  className="inline-flex items-center justify-center rounded-full border border-[#B89A5E]/40 px-5 py-3 text-sm font-medium transition hover:bg-[#CFE9DF]/70"
-                >
-                  <Eye className="mr-2 h-4 w-4" />
-                  View Shop
-                </a>
-              </div>
-
-              <div className="mt-8 rounded-[2rem] border border-[#B89A5E]/20 bg-white/75 p-6 shadow-xl shadow-black/5">
-                <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                  <div>
-                    <h3 className="font-serif text-3xl">Recent Orders</h3>
-                    <p className="mt-1 text-sm text-[#1B1411]/50">
-                      {filteredOrders.length} order{filteredOrders.length !== 1 ? "s" : ""} found
-                    </p>
+                <form onSubmit={handleAddProduct} className="space-y-4">
+                  <input className={fieldClass} placeholder="Product name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
+                  <select className={fieldClass} value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })}>
+                    <option>Earrings</option>
+                    <option>Necklaces</option>
+                    <option>Bracelets</option>
+                    <option>Rings</option>
+                    <option>Gift Sets</option>
+                    <option>Size Guide</option>
+                  </select>
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                    <input className={fieldClass} placeholder="Price" type="number" value={form.price} onChange={(event) => setForm({ ...form, price: event.target.value })} />
+                    <input className={fieldClass} placeholder="Stock" type="number" value={form.stock} onChange={(event) => setForm({ ...form, stock: event.target.value })} />
                   </div>
+                  <select className={fieldClass} value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}>
+                    <option>Active</option>
+                    <option>Low Stock</option>
+                    <option>Hidden</option>
+                  </select>
+                  <textarea className={`${fieldClass} min-h-28 resize-none`} placeholder="Description" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} />
+                  <ImagePicker preview={previewImage} onFile={(file) => handleImageFile(file, false)} />
+                  <button type="submit" className="w-full rounded-full bg-[#1B1411] px-6 py-4 text-sm font-semibold text-[#FFF8EF] shadow-xl shadow-black/10 transition hover:bg-[#B89A5E] hover:text-[#1B1411]">
+                    Add Product
+                  </button>
+                </form>
+              </Panel>
 
-                  <div className="flex flex-wrap items-center gap-2">
-                    <div className="flex items-center gap-2 rounded-full border border-[#B89A5E]/20 bg-[#FFF8EF] px-4 py-3">
+              <Panel className="p-6">
+                <div className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+                  <div>
+                    <SectionLabel>Inventory List</SectionLabel>
+                    <h2 className="font-serif text-3xl">Pearl catalog</h2>
+                    <p className="mt-1 text-sm text-[#1B1411]/55">{sortedAndFilteredProducts.length} product{sortedAndFilteredProducts.length === 1 ? "" : "s"} shown</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <div className="flex items-center gap-2 rounded-full border border-[#B89A5E]/25 bg-[#FFFDF7]/75 px-4 py-3">
                       <Search className="h-4 w-4 text-[#8A6A3F]" />
-                      <input
-                        className="bg-transparent text-sm outline-none placeholder:text-[#1B1411]/40"
-                        placeholder="Search order..."
-                        value={orderSearch}
-                        onChange={(e) => setOrderSearch(e.target.value)}
-                      />
+                      <input className="w-40 bg-transparent text-sm outline-none placeholder:text-[#1B1411]/35" placeholder="Search product..." value={search} onChange={(event) => setSearch(event.target.value)} />
                     </div>
-                    <button
-                      onClick={() => {
-                        setOrderSearch("");
-                        setOrderFilter("all");
-                      }}
-                      className="grid h-10 w-10 place-items-center rounded-full border border-[#B89A5E]/40 transition hover:bg-[#FFF8EF]"
-                      title="Reset filters"
-                    >
+                    <button type="button" onClick={() => { setSearch(""); setProductCategory("all"); setSortBy("name"); }} className="grid h-11 w-11 place-items-center rounded-full border border-[#B89A5E]/30 bg-[#FFFDF7]/75 transition hover:bg-[#CFE9DF]/70" title="Reset filters">
                       <RotateCcw className="h-4 w-4" />
                     </button>
-                    <button
-                      onClick={() => exportAsCSV("orders")}
-                      className="inline-flex items-center gap-2 rounded-full border border-[#B89A5E]/40 px-4 py-2 text-sm transition hover:bg-[#FFF8EF]"
-                    >
-                      <Download className="h-4 w-4" />
-                      Export
-                    </button>
                   </div>
                 </div>
 
-                <div className="mb-6">
-                  <select
-                    value={orderFilter}
-                    onChange={(e) => setOrderFilter(e.target.value)}
-                    className="rounded-2xl border border-[#B89A5E]/20 bg-[#FFF8EF] px-4 py-3 text-sm outline-none focus:border-[#B89A5E]"
-                  >
+                <div className="mb-6 grid gap-3 sm:grid-cols-2">
+                  <select value={productCategory} onChange={(event) => setProductCategory(event.target.value)} className={fieldClass}>
+                    {categories.map((category) => (
+                      <option key={category} value={category}>{category === "all" ? "All Categories" : category}</option>
+                    ))}
+                  </select>
+                  <select value={sortBy} onChange={(event) => setSortBy(event.target.value)} className={fieldClass}>
+                    <option value="name">Sort by Name (A-Z)</option>
+                    <option value="stock-low">Sort by Stock (Low to High)</option>
+                    <option value="stock-high">Sort by Stock (High to Low)</option>
+                    <option value="price-low">Sort by Price (Low to High)</option>
+                    <option value="price-high">Sort by Price (High to Low)</option>
+                  </select>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[760px] border-separate border-spacing-y-3 text-left">
+                    <thead>
+                      <tr className="text-xs uppercase tracking-[0.22em] text-[#1B1411]/40">
+                        <th className="px-4">Product</th>
+                        <th className="px-4">Category</th>
+                        <th className="px-4">Price</th>
+                        <th className="px-4">Stock</th>
+                        <th className="px-4">Status</th>
+                        <th className="px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedAndFilteredProducts.map((product) => {
+                        const statusValue = getStatus(product);
+                        return (
+                          <tr key={product.id} className="rounded-2xl bg-[#FFFDF7]/82 text-sm shadow-sm shadow-black/5">
+                            <td className="rounded-l-2xl px-4 py-4">
+                              <div className="flex items-center gap-3">
+                                <img src={product.image || "/weekly-pearl-box.png"} alt={product.name} className="h-14 w-14 rounded-xl object-cover shadow-md shadow-black/10" />
+                                <div>
+                                  <p className="font-semibold text-[#1B1411]">{product.name}</p>
+                                  <p className="text-xs text-[#1B1411]/45">ID: {product.id}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-4">{product.category}</td>
+                            <td className="px-4 py-4 font-medium">{formatPrice(product.price)}</td>
+                            <td className="px-4 py-4">{product.stock}</td>
+                            <td className="px-4 py-4">
+                              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusValue === "Low Stock" ? "bg-[#F4C6D3]/65" : statusValue === "Hidden" ? "bg-[#F7E8DD]" : "bg-[#CFE9DF]/75"}`}>
+                                {statusValue}
+                              </span>
+                            </td>
+                            <td className="rounded-r-2xl px-4 py-4">
+                              <div className="flex justify-end gap-2">
+                                <button type="button" onClick={() => handleStartEdit(product)} className="grid h-10 w-10 place-items-center rounded-full bg-[#CFE9DF]/70 text-[#1B1411] transition hover:bg-[#B89A5E] hover:text-[#1B1411]" title="Edit product">
+                                  <Pencil className="h-4 w-4" />
+                                </button>
+                                <button type="button" onClick={() => setDeleteConfirm(product.id)} className="grid h-10 w-10 place-items-center rounded-full bg-[#F4C6D3]/65 text-[#1B1411] transition hover:bg-[#1B1411] hover:text-[#FFF8EF]" title="Delete product">
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+
+                  {sortedAndFilteredProducts.length === 0 && (
+                    <EmptyState title="No products found" copy="Try clearing the filters or add a new product from the form." />
+                  )}
+                </div>
+              </Panel>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "orders" && (
+          <div>
+            <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+              <div>
+                <SectionLabel>Admin / Orders</SectionLabel>
+                <h1 className="max-w-3xl font-serif text-5xl leading-tight text-[#1B1411] sm:text-6xl">
+                  Order management with a softer touch.
+                </h1>
+                <p className="mt-5 max-w-2xl text-sm leading-7 text-[#1B1411]/65">
+                  Track customer activity while keeping the same polished, calm PEARLfectly feel.
+                </p>
+              </div>
+              <button onClick={() => exportAsCSV("orders")} className="inline-flex items-center justify-center gap-2 rounded-full border border-[#B89A5E]/35 bg-[#FFFDF7]/75 px-5 py-3 text-sm font-semibold text-[#4A3832] transition hover:bg-[#1B1411] hover:text-[#FFF8EF]">
+                <Download className="h-4 w-4" /> Export Orders
+              </button>
+            </div>
+
+            <Panel className="mt-8 p-6">
+              <div className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+                <div>
+                  <SectionLabel>Recent Orders</SectionLabel>
+                  <h2 className="font-serif text-3xl">Customer orders</h2>
+                  <p className="mt-1 text-sm text-[#1B1411]/55">{filteredOrders.length} order{filteredOrders.length === 1 ? "" : "s"} shown</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <div className="flex items-center gap-2 rounded-full border border-[#B89A5E]/25 bg-[#FFFDF7]/75 px-4 py-3">
+                    <Search className="h-4 w-4 text-[#8A6A3F]" />
+                    <input className="w-40 bg-transparent text-sm outline-none placeholder:text-[#1B1411]/35" placeholder="Search order..." value={orderSearch} onChange={(event) => setOrderSearch(event.target.value)} />
+                  </div>
+                  <select value={orderFilter} onChange={(event) => setOrderFilter(event.target.value)} className="rounded-full border border-[#B89A5E]/25 bg-[#FFFDF7]/75 px-4 py-3 text-sm outline-none focus:border-[#B89A5E]">
                     <option value="all">All Statuses</option>
                     <option value="Completed">Completed</option>
                     <option value="Pending">Pending</option>
                     <option value="Shipped">Shipped</option>
                   </select>
                 </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[720px] border-separate border-spacing-y-3 text-left">
-                    <thead>
-                      <tr className="text-xs uppercase tracking-[0.2em] text-[#1B1411]/40">
-                        <th className="px-4">Order ID</th>
-                        <th className="px-4">Customer</th>
-                        <th className="px-4">Items</th>
-                        <th className="px-4">Total</th>
-                        <th className="px-4">Date</th>
-                        <th className="px-4">Status</th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {filteredOrders.map((order) => (
-                        <tr
-                          key={order.id}
-                          className="rounded-2xl bg-[#FFF8EF] text-sm shadow-sm"
-                        >
-                          <td className="rounded-l-2xl px-4 py-4 font-medium">
-                            {order.id}
-                          </td>
-                          <td className="px-4 py-4">{order.customer}</td>
-                          <td className="px-4 py-4">{order.items}</td>
-                          <td className="px-4 py-4 font-medium">
-                            {formatPrice(order.total)}
-                          </td>
-                          <td className="px-4 py-4 text-sm text-[#1B1411]/60">
-                            {new Date(order.date).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })}
-                          </td>
-                          <td className="rounded-r-2xl px-4 py-4">
-                            <span
-                              className={`rounded-full px-3 py-1 text-xs font-medium ${
-                                order.status === "Completed"
-                                  ? "bg-[#CFE9DF] text-[#1B1411]"
-                                  : order.status === "Pending"
-                                  ? "bg-[#F4C6D3]/60 text-[#1B1411]"
-                                  : "bg-[#FFF8EF] border border-[#B89A5E]/40 text-[#1B1411]"
-                              }`}
-                            >
-                              {order.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
               </div>
-            </div>
-          )}
-        </section>
-      </div>
 
-      {editingId && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 p-4 z-50">
-          <form
-            onSubmit={handleUpdateProduct}
-            className="w-full max-w-md rounded-[2rem] border border-[#B89A5E]/20 bg-white/95 p-6 shadow-2xl"
-          >
-            <div className="mb-6">
-              <h3 className="font-serif text-3xl">Edit Product</h3>
-              <p className="mt-1 text-sm text-[#1B1411]/50">
-                Update product information
-              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[720px] border-separate border-spacing-y-3 text-left">
+                  <thead>
+                    <tr className="text-xs uppercase tracking-[0.22em] text-[#1B1411]/40">
+                      <th className="px-4">Order ID</th>
+                      <th className="px-4">Customer</th>
+                      <th className="px-4">Items</th>
+                      <th className="px-4">Total</th>
+                      <th className="px-4">Date</th>
+                      <th className="px-4">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredOrders.map((order) => (
+                      <tr key={order.id} className="rounded-2xl bg-[#FFFDF7]/82 text-sm shadow-sm shadow-black/5">
+                        <td className="rounded-l-2xl px-4 py-4 font-semibold">{order.id}</td>
+                        <td className="px-4 py-4">{order.customer}</td>
+                        <td className="px-4 py-4">{order.items}</td>
+                        <td className="px-4 py-4 font-medium">{formatPrice(order.total)}</td>
+                        <td className="px-4 py-4 text-[#1B1411]/60">{order.date ? new Date(order.date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "—"}</td>
+                        <td className="rounded-r-2xl px-4 py-4">
+                          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${order.status === "Completed" ? "bg-[#CFE9DF]/75" : order.status === "Pending" ? "bg-[#F4C6D3]/65" : "bg-[#F7E8DD]"}`}>
+                            {order.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {filteredOrders.length === 0 && (
+                  <EmptyState title="No orders yet" copy="Orders will appear here once your checkout flow starts saving them." />
+                )}
+              </div>
+            </Panel>
+          </div>
+        )}
+      </section>
+
+      {editingProduct && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-[#1B1411]/55 p-4 backdrop-blur-sm">
+          <form onSubmit={handleUpdateProduct} className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-[2.5rem] border border-white/60 bg-[#FFF8EF]/92 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <SectionLabel>Edit Product</SectionLabel>
+                <h2 className="font-serif text-3xl">Refine pearl details</h2>
+                <p className="mt-1 text-sm text-[#1B1411]/55">Update the selected product.</p>
+              </div>
+              <button type="button" onClick={() => setEditingProduct(null)} className="grid h-10 w-10 place-items-center rounded-full bg-[#FFFDF7]/80 transition hover:bg-[#F4C6D3]/70">
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
             <div className="space-y-4">
-              <input
-                className="w-full rounded-2xl border border-[#B89A5E]/20 bg-[#FFF8EF] px-4 py-3 text-sm outline-none focus:border-[#B89A5E]"
-                placeholder="Product name"
-                value={editForm.name}
-                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-              />
-
-              <select
-                className="w-full rounded-2xl border border-[#B89A5E]/20 bg-[#FFF8EF] px-4 py-3 text-sm outline-none focus:border-[#B89A5E]"
-                value={editForm.category}
-                onChange={(e) =>
-                  setEditForm({ ...editForm, category: e.target.value })
-                }
-              >
+              <input className={fieldClass} placeholder="Product name" value={editForm.name} onChange={(event) => setEditForm({ ...editForm, name: event.target.value })} />
+              <select className={fieldClass} value={editForm.category} onChange={(event) => setEditForm({ ...editForm, category: event.target.value })}>
                 <option>Earrings</option>
                 <option>Necklaces</option>
                 <option>Bracelets</option>
                 <option>Rings</option>
+                <option>Gift Sets</option>
+                <option>Size Guide</option>
               </select>
-
-              <input
-                className="w-full rounded-2xl border border-[#B89A5E]/20 bg-[#FFF8EF] px-4 py-3 text-sm outline-none focus:border-[#B89A5E]"
-                placeholder="Price"
-                type="number"
-                value={editForm.price}
-                onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
-              />
-
-              <input
-                className="w-full rounded-2xl border border-[#B89A5E]/20 bg-[#FFF8EF] px-4 py-3 text-sm outline-none focus:border-[#B89A5E]"
-                placeholder="Stock"
-                type="number"
-                value={editForm.stock}
-                onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })}
-              />
-
-              <div
-                onDrop={(e) => handleImageDrop(e, true)}
-                onDragOver={handleDragOver}
-                className="rounded-2xl border-2 border-dashed border-[#B89A5E]/40 bg-[#FFF8EF] p-6 text-center transition hover:border-[#B89A5E] hover:bg-[#FFF8EF]/80 cursor-pointer"
-              >
-                {editPreviewImage ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <img
-                      src={editPreviewImage}
-                      alt="Preview"
-                      className="h-20 w-20 rounded-xl object-cover"
-                    />
-                    <p className="text-xs text-[#1B1411]/60">Image selected</p>
-                    <label className="text-xs text-[#8A6A3F] underline cursor-pointer">
-                      Change image
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageDrop(e, true)}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-sm font-medium text-[#1B1411]">
-                      Drop image here
-                    </p>
-                    <p className="mt-1 text-xs text-[#1B1411]/50">
-                      or{" "}
-                      <label className="text-[#8A6A3F] underline cursor-pointer">
-                        click to select
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleImageDrop(e, true)}
-                          className="hidden"
-                        />
-                      </label>
-                    </p>
-                  </div>
-                )}
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input className={fieldClass} placeholder="Price" type="number" value={editForm.price} onChange={(event) => setEditForm({ ...editForm, price: event.target.value })} />
+                <input className={fieldClass} placeholder="Stock" type="number" value={editForm.stock} onChange={(event) => setEditForm({ ...editForm, stock: event.target.value })} />
               </div>
+              <select className={fieldClass} value={editForm.status} onChange={(event) => setEditForm({ ...editForm, status: event.target.value })}>
+                <option>Active</option>
+                <option>Low Stock</option>
+                <option>Hidden</option>
+              </select>
+              <textarea className={`${fieldClass} min-h-28 resize-none`} placeholder="Description" value={editForm.description} onChange={(event) => setEditForm({ ...editForm, description: event.target.value })} />
+              <ImagePicker preview={editPreviewImage} onFile={(file) => handleImageFile(file, true)} label="Drop replacement image here" />
 
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  className="flex-1 rounded-full bg-[#1B1411] px-6 py-4 text-sm font-medium text-[#FFF8EF] transition hover:bg-[#B89A5E] hover:text-[#1B1411]"
-                >
+              <div className="grid gap-3 pt-3 sm:grid-cols-2">
+                <button type="submit" className="rounded-full bg-[#1B1411] px-6 py-4 text-sm font-semibold text-[#FFF8EF] shadow-xl shadow-black/10 transition hover:bg-[#B89A5E] hover:text-[#1B1411]">
                   Save Changes
                 </button>
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  className="flex-1 rounded-full border border-[#B89A5E]/40 px-6 py-4 text-sm font-medium transition hover:bg-[#FFF8EF]"
-                >
+                <button type="button" onClick={() => setEditingProduct(null)} className="rounded-full border border-[#B89A5E]/35 bg-[#FFFDF7]/65 px-6 py-4 text-sm font-semibold transition hover:bg-[#CFE9DF]/70">
                   Cancel
                 </button>
               </div>
@@ -1124,26 +897,18 @@ export default function AdminInventoryPage() {
       )}
 
       {deleteConfirm && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 p-4 z-50">
-          <div className="w-full max-w-md rounded-[2rem] border border-[#B89A5E]/20 bg-white/95 p-6 shadow-2xl">
-            <div className="mb-6">
-              <h3 className="font-serif text-3xl">Delete Product?</h3>
-              <p className="mt-2 text-sm text-[#1B1411]/60">
-                This action cannot be undone. The product will be permanently removed from your inventory.
-              </p>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => handleDeleteProduct(deleteConfirm)}
-                className="flex-1 rounded-full bg-[#F4C6D3] px-6 py-3 text-sm font-medium text-[#1B1411] transition hover:bg-[#F4C6D3]/80"
-              >
+        <div className="fixed inset-0 z-50 grid place-items-center bg-[#1B1411]/55 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-[2.5rem] border border-white/60 bg-[#FFF8EF]/92 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+            <SectionLabel>Confirm Delete</SectionLabel>
+            <h2 className="font-serif text-3xl">Delete product?</h2>
+            <p className="mt-3 text-sm leading-7 text-[#1B1411]/60">
+              This will remove the product from your local inventory file and the shop page after refresh.
+            </p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button type="button" onClick={() => handleDeleteProduct(deleteConfirm)} className="rounded-full bg-[#F4C6D3] px-6 py-3 text-sm font-semibold text-[#1B1411] transition hover:bg-[#1B1411] hover:text-[#FFF8EF]">
                 Delete
               </button>
-              <button
-                onClick={() => setDeleteConfirm(null)}
-                className="flex-1 rounded-full border border-[#B89A5E]/40 px-6 py-3 text-sm font-medium transition hover:bg-[#FFF8EF]"
-              >
+              <button type="button" onClick={() => setDeleteConfirm(null)} className="rounded-full border border-[#B89A5E]/35 bg-[#FFFDF7]/65 px-6 py-3 text-sm font-semibold transition hover:bg-[#CFE9DF]/70">
                 Cancel
               </button>
             </div>
@@ -1152,26 +917,11 @@ export default function AdminInventoryPage() {
       )}
 
       {toast && (
-        <div className="fixed bottom-8 right-8 z-50">
-          <div
-            className={`flex items-center gap-3 rounded-full px-6 py-4 shadow-xl transition-all ${
-              toast.type === "success"
-                ? "bg-[#CFE9DF] text-[#1B1411]"
-                : "bg-[#F4C6D3]/80 text-[#1B1411]"
-            }`}
-          >
-            {toast.type === "success" ? (
-              <div className="grid h-5 w-5 place-items-center rounded-full bg-[#1B1411]/10">
-                <span className="text-sm font-bold">✓</span>
-              </div>
-            ) : (
-              <AlertCircle className="h-5 w-5" />
-            )}
-            <p className="text-sm font-medium">{toast.message}</p>
-            <button
-              onClick={() => setToast(null)}
-              className="ml-2 text-lg opacity-70 hover:opacity-100"
-            >
+        <div className="fixed bottom-8 right-8 z-50 max-w-[calc(100vw-2rem)]">
+          <div className={`flex items-center gap-3 rounded-full border border-white/60 px-6 py-4 shadow-2xl shadow-black/10 backdrop-blur-xl ${toast.type === "success" ? "bg-[#CFE9DF]/95" : "bg-[#F4C6D3]/95"}`}>
+            {toast.type === "success" ? <ShieldCheck className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+            <p className="text-sm font-semibold text-[#1B1411]">{toast.message}</p>
+            <button type="button" onClick={() => setToast(null)} className="ml-1 opacity-70 transition hover:opacity-100">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -1179,4 +929,8 @@ export default function AdminInventoryPage() {
       )}
     </main>
   );
+}
+
+function TrendingIcon(props) {
+  return <Sparkles {...props} />;
 }

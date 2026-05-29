@@ -71,7 +71,7 @@ const collections = [
   },
 ];
 
-const products = [
+const fallbackProducts = [
   {
     id: 1,
     name: "Weekly Pearl Stud Set",
@@ -223,6 +223,24 @@ const fadeUp = {
 
 function formatPrice(value) {
   return `₱${Number(value).toLocaleString("en-PH")}`;
+}
+
+function normalizeProduct(product) {
+  const category = product.category || "Earrings";
+
+  return {
+    ...product,
+    id: product.id ?? `${product.name}-${product.price}`,
+    name: product.name || "Untitled Product",
+    category,
+    price: Number(product.price ?? 0),
+    status: product.status || "Active",
+    rating: Number(product.rating ?? 5),
+    tag: product.tag || product.status || "New",
+    pearl: product.pearl || product.description || category,
+    metal: product.metal || "Gold-tone Setting",
+    image: product.image || "/weekly-pearl-box.png",
+  };
 }
 
 function SectionLabel({ children, dark = false }) {
@@ -487,7 +505,12 @@ function Navbar({ onSearch, onCart, cartCount = 0 }) {
             <button className={iconButton} aria-label="Messages">
               <MessageCircle className="h-6 w-6 stroke-[1.6]" />
             </button>
-            <button onClick={onCart} className={`relative ${iconButton}`} aria-label="Open cart">
+            <button
+              data-cart-target="true"
+              onClick={onCart}
+              className={`relative ${iconButton}`}
+              aria-label="Open cart"
+            >
               <ShoppingBag className="h-6 w-6 stroke-[1.6]" />
               <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#B89A5E] px-1 text-[10px] font-semibold text-[#1B1411] shadow-sm">
                 {cartCount}
@@ -632,7 +655,7 @@ function Navbar({ onSearch, onCart, cartCount = 0 }) {
                 <button className="grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Account">
                   <UserRound className="h-5 w-5" />
                 </button>
-                <button onClick={onCart} className="relative grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Open cart">
+                <button data-cart-target="true" onClick={onCart} className="relative grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Open cart">
                   <ShoppingBag className="h-5 w-5" />
                   <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#B89A5E] px-1 text-[10px] font-semibold text-[#1B1411]">
                     {cartCount}
@@ -706,7 +729,7 @@ function Hero() {
                 </p>
 
                 <h2 className="mt-3 text-center font-serif text-3xl text-[#1B1411]">
-                  Welcome Back
+                  Welcome Back!
                 </h2>
 
                 <p className="mx-auto mt-3 max-w-[260px] text-center text-sm leading-6 text-[#1B1411]/60">
@@ -796,7 +819,7 @@ function FeaturedCollections() {
           </p>
         </motion.div>
 
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-6">
           {collections.map((item, index) => (
             <motion.article
               key={item.title}
@@ -820,60 +843,261 @@ function FeaturedCollections() {
     </section>
   );
 }
-
 function ProductCard({ product, onQuickView, addToCart }) {
   const [liked, setLiked] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [isAdded, setIsAdded] = useState(false);
+  const [flyItem, setFlyItem] = useState(null);
+
+  const productImageRef = useRef(null);
+  const addedTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      window.clearTimeout(addedTimeoutRef.current);
+    };
+  }, []);
+
+  const getCartTargetRect = () => {
+    const cartButtons = Array.from(
+      document.querySelectorAll("[data-cart-target='true']")
+    );
+
+    const visibleCartButton = cartButtons.find((button) => {
+      const rect = button.getBoundingClientRect();
+
+      return (
+        rect.width > 0 &&
+        rect.height > 0 &&
+        rect.top >= -20 &&
+        rect.left >= 0 &&
+        rect.bottom <= window.innerHeight + 80
+      );
+    });
+
+    if (visibleCartButton) {
+      return visibleCartButton.getBoundingClientRect();
+    }
+
+    return {
+      left: window.innerWidth - 80,
+      top: 32,
+      width: 48,
+      height: 48,
+    };
+  };
+
+  const handleCardAddToCart = () => {
+    const sourceRect = productImageRef.current?.getBoundingClientRect();
+    const cartRect = getCartTargetRect();
+
+    if (sourceRect && cartRect) {
+      const size = 76;
+
+      setFlyItem({
+        id: Date.now(),
+        image: product.image,
+        size,
+        from: {
+          x: sourceRect.left + sourceRect.width / 2 - size / 2,
+          y: sourceRect.top + sourceRect.height / 2 - size / 2,
+        },
+        to: {
+          x: cartRect.left + cartRect.width / 2 - size / 2,
+          y: cartRect.top + cartRect.height / 2 - size / 2,
+        },
+      });
+    }
+
+    addToCart(product, quantity);
+    setQuantity(1);
+
+    setIsAdded(true);
+    window.clearTimeout(addedTimeoutRef.current);
+
+    addedTimeoutRef.current = window.setTimeout(() => {
+      setIsAdded(false);
+    }, 1000);
+  };
 
   return (
-    <motion.article {...fadeUp} className="group overflow-hidden rounded-[2rem] border border-[#B89A5E]/20 bg-[#FFF8EF]/88 shadow-xl shadow-black/5 backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/10">
-      <div className="relative aspect-[4/3] overflow-hidden bg-[#F7E8DD]">
-        <img src={product.image} alt={product.name} className="h-full w-full object-cover transition duration-1000 group-hover:scale-110" />
-        <div className="absolute left-4 top-4 rounded-full bg-[#FFF8EF]/90 px-4 py-2 text-xs font-semibold text-[#1B1411] backdrop-blur">
-          {product.tag}
-        </div>
-        <button
-          onClick={() => setLiked(!liked)}
-          className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-[#FFF8EF]/90 text-[#1B1411] backdrop-blur transition hover:bg-[#B89A5E]"
-          aria-label="Add to wishlist"
-        >
-          <Heart className={`h-5 w-5 ${liked ? "fill-[#1B1411]" : ""}`} />
-        </button>
-        <div className="absolute inset-x-4 bottom-4 flex translate-y-4 gap-3 opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-          <button onClick={() => onQuickView(product)} className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#1B1411] px-4 py-3 text-sm text-[#FFF8EF] hover:bg-[#B89A5E] hover:text-[#1B1411]">
-            <ZoomIn className="h-4 w-4" /> Quick View
+    <>
+      <AnimatePresence>
+        {flyItem && (
+          <motion.img
+            key={flyItem.id}
+            src={flyItem.image}
+            alt=""
+            initial={{
+              x: flyItem.from.x,
+              y: flyItem.from.y,
+              scale: 1,
+              opacity: 1,
+              rotate: 0,
+            }}
+            animate={{
+              x: flyItem.to.x,
+              y: flyItem.to.y,
+              scale: 0.24,
+              opacity: [1, 1, 0],
+              rotate: 12,
+            }}
+            exit={{ opacity: 0 }}
+            transition={{
+              duration: 0.75,
+              ease: "easeInOut",
+            }}
+            onAnimationComplete={() => setFlyItem(null)}
+            className="pointer-events-none fixed left-0 top-0 z-[120] rounded-2xl border border-[#B89A5E]/30 object-cover shadow-2xl shadow-black/20"
+            style={{
+              width: flyItem.size,
+              height: flyItem.size,
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <motion.article
+        {...fadeUp}
+        animate={{
+          scale: isAdded ? 1.012 : 1,
+          boxShadow: isAdded
+            ? "0 18px 45px rgba(184, 154, 94, 0.18)"
+            : "0 0 0 rgba(184, 154, 94, 0)",
+        }}
+        transition={{ duration: 0.24, ease: "easeOut" }}
+        className={`group overflow-hidden rounded-[2rem] border bg-[#FFF8EF]/88 shadow-xl shadow-black/5 backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/10 ${
+          isAdded ? "border-[#B89A5E]/60" : "border-[#B89A5E]/20"
+        }`}
+      >
+        <div className="relative aspect-[4/3] overflow-hidden bg-[#F7E8DD]">
+          <img
+            ref={productImageRef}
+            src={product.image}
+            alt={product.name}
+            className="h-full w-full object-cover transition duration-1000 group-hover:scale-110"
+          />
+
+          <div className="absolute left-4 top-4 rounded-full bg-[#FFF8EF]/90 px-4 py-2 text-xs font-semibold text-[#1B1411] backdrop-blur">
+            {product.tag}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setLiked(!liked)}
+            className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-[#FFF8EF]/90 text-[#1B1411] backdrop-blur transition hover:bg-[#B89A5E]"
+            aria-label="Add to wishlist"
+          >
+            <Heart className={`h-5 w-5 ${liked ? "fill-[#1B1411]" : ""}`} />
           </button>
-          <button onClick={() => addToCart(product)} className="grid h-12 w-12 place-items-center rounded-full bg-[#FFF8EF] text-[#1B1411] hover:bg-[#B89A5E]" aria-label={`Add ${product.name} to cart`}>
-            <ShoppingBag className="h-5 w-5" />
-          </button>
+
+          <div className="absolute bottom-4 left-4 flex translate-y-4 opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+            <button
+              type="button"
+              onClick={() => onQuickView(product)}
+              className="inline-flex items-center justify-center gap-1.5 rounded-full bg-[#1B1411] px-4 py-2 text-xs font-medium text-[#FFF8EF] shadow-lg shadow-black/10 transition hover:bg-[#B89A5E] hover:text-[#1B1411]"
+            >
+              <ZoomIn className="h-3.5 w-3.5" />
+              Quick View
+            </button>
+          </div>
         </div>
-      </div>
-      <div className="p-6">
-        <div className="mb-3 flex items-center gap-1 text-[#B89A5E]">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Star key={i} className={`h-4 w-4 ${i < product.rating ? "fill-current" : "opacity-25"}`} />
-          ))}
+
+        <div className="p-6">
+          <div className="mb-3 flex items-center gap-1 text-[#B89A5E]">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star
+                key={i}
+                className={`h-4 w-4 ${
+                  i < product.rating ? "fill-current" : "opacity-25"
+                }`}
+              />
+            ))}
+          </div>
+
+          <p className="text-xs uppercase tracking-[0.25em] text-[#8A6A3F]">
+            {product.category}
+          </p>
+
+          <h3 className="mt-2 font-serif text-2xl text-[#1B1411]">
+            {product.name}
+          </h3>
+
+          <p className="mt-2 text-sm text-[#1B1411]/70">
+            {product.pearl} · {product.metal}
+          </p>
+
+          <div className="mt-0.5 space-y-3">
+            <p className="font-serif text-2xl text-[#1B1411]">
+              {formatPrice(product.price)}
+            </p>
+
+            <div className="flex w-full items-center gap-2">
+              <div className="flex h-9 shrink-0 items-center rounded-full border border-[#B89A5E]/30 bg-[#FFFDF7]/80">
+                <button
+                  type="button"
+                  onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                  className="grid h-9 w-8 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#F7E8DD]"
+                  aria-label={`Decrease quantity of ${product.name}`}
+                >
+                  <Minus className="h-3.5 w-3.5" />
+                </button>
+
+                <span className="min-w-6 text-center text-xs font-semibold text-[#1B1411]">
+                  {quantity}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => setQuantity((prev) => prev + 1)}
+                  className="grid h-9 w-8 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#F7E8DD]"
+                  aria-label={`Increase quantity of ${product.name}`}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.94 }}
+                animate={{ scale: isAdded ? 1.04 : 1 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                onClick={handleCardAddToCart}
+                className={`min-w-0 flex-1 overflow-hidden rounded-full px-3 py-2 text-center text-sm font-semibold transition ${
+                  isAdded
+                    ? "bg-[#CFE9DF] text-[#1B1411] shadow-sm"
+                    : "text-[#8A6A3F] hover:bg-[#F3E7D6]/70 hover:text-[#1B1411]"
+                }`}
+              >
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={isAdded ? "added" : "add"}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.16 }}
+                    className="block truncate text-center"
+                  >
+                    {isAdded ? "Added ✓" : "Add to Cart"}
+                  </motion.span>
+                </AnimatePresence>
+              </motion.button>
+            </div>
+          </div>
         </div>
-        <p className="text-xs uppercase tracking-[0.25em] text-[#8A6A3F]">{product.category}</p>
-        <h3 className="mt-2 font-serif text-2xl text-[#1B1411]">{product.name}</h3>
-        <p className="mt-2 text-sm text-[#1B1411]/70">{product.pearl} · {product.metal}</p>
-        <div className="mt-5 flex items-center justify-between gap-4">
-          <p className="font-serif text-2xl text-[#1B1411]">{formatPrice(product.price)}</p>
-          <button onClick={() => addToCart(product)} className="rounded-full px-4 py-2 text-sm font-semibold text-[#8A6A3F] transition hover:bg-[#F3E7D6]/70 hover:text-[#1B1411]">
-            Add to Cart
-          </button>
-        </div>
-      </div>
-    </motion.article>
+      </motion.article>
+    </>
   );
 }
 
-function ProductShowcase({ onQuickView, addToCart }) {
+function ProductShowcase({ products, onQuickView, addToCart }) {
   const [activeFilter, setActiveFilter] = useState("All");
-  const filters = ["All", "Earrings", "Gift Sets", "Size Guide"];
+  const displayProducts = products;
+  const filters = ["All", ...Array.from(new Set(displayProducts.map((product) => product.category).filter(Boolean)))];
   const visible =
     activeFilter === "All"
-      ? products
-      : products.filter((p) => p.category === activeFilter);
+      ? displayProducts
+      : displayProducts.filter((p) => p.category === activeFilter);
 
   return (
     <section id="shop" className="relative overflow-hidden bg-[#FFF8EF] px-6 py-24 sm:px-8 lg:px-10">
@@ -882,7 +1106,7 @@ function ProductShowcase({ onQuickView, addToCart }) {
       <div className="relative z-10 mx-auto max-w-7xl">
         <motion.div {...fadeUp} className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <SectionLabel>Shop the Edit</SectionLabel>
+            <SectionLabel>Shop</SectionLabel>
             <h2 className="font-serif text-4xl text-[#1B1411] sm:text-6xl">
               Best sellers & new arrivals
             </h2>
@@ -908,9 +1132,23 @@ function ProductShowcase({ onQuickView, addToCart }) {
           </div>
         </motion.div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {visible.map((product) => (
-            <ProductCard key={product.id} product={product} onQuickView={onQuickView} addToCart={addToCart} />
-          ))}
+          {visible.length > 0 ? (
+            visible.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onQuickView={onQuickView}
+                addToCart={addToCart}
+              />
+            ))
+          ) : (
+            <div className="col-span-full rounded-[2rem] border border-[#B89A5E]/20 bg-[#F7E8DD]/82 p-8 text-center">
+              <p className="font-serif text-2xl text-[#1B1411]">No products yet</p>
+              <p className="mt-2 text-sm text-[#1B1411]/60">
+                Add products from the admin page, then refresh this page.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </section>
@@ -965,14 +1203,19 @@ function Craftsmanship() {
   );
 }
 
-function ProductDetailLayout({ addToCart }) {
+function ProductDetailLayout({ products, addToCart }) {
   const [variant, setVariant] = useState("Gold-tone Backing");
   const [quantity, setQuantity] = useState(1);
-  const product = products[0];
+  const displayProducts = products;
+  const product = displayProducts[0];
+
+  if (!product) {
+    return null;
+  }
   const variants = ["Gold-tone Backing", "Silver-tone Backing", "Rose-gold Tone"];
 
   return (
-    <section className="relative overflow-hidden bg-[#F7E8DD] px-6 py-24 sm:px-8 lg:px-10">
+    <section id="product-details" className="relative scroll-mt-40 overflow-hidden bg-[#F7E8DD] px-6 py-24 sm:px-8 lg:px-10">
       <SoftBackgroundDecor />
 
       <div className="relative z-10 mx-auto max-w-7xl">
@@ -987,9 +1230,9 @@ function ProductDetailLayout({ addToCart }) {
         <div className="grid gap-8 rounded-[2.5rem] border border-[#B89A5E]/20 bg-[#FFF8EF]/88 p-4 shadow-2xl shadow-black/5 backdrop-blur-md lg:grid-cols-2 lg:p-8">
           <div className="grid gap-4 sm:grid-cols-[0.22fr_1fr]">
             <div className="hidden gap-4 sm:grid">
-              {[product.image, products[1].image, products[2].image].map((img, index) => (
-                <button key={`${img}-${index}`} className="overflow-hidden rounded-2xl border border-[#B89A5E]/20 bg-[#F7E8DD]">
-                  <img src={img} alt="Pearl product thumbnail" className="aspect-square h-full w-full object-cover" />
+              {displayProducts.slice(0, 3).map((item, index) => (
+                <button key={`${item.id}-${index}`} className="overflow-hidden rounded-2xl border border-[#B89A5E]/20 bg-[#F7E8DD]">
+                  <img src={item.image} alt={item.name} className="aspect-square h-full w-full object-cover" />
                 </button>
               ))}
             </div>
@@ -1068,8 +1311,7 @@ function ProductDetailLayout({ addToCart }) {
               ))}
             </div>
 
-            <div className="mt-5 grid gap-3 text-xs leading-6 text-[#1B1411]/70 sm:grid-cols-3">
-              <p><span className="font-semibold text-[#1B1411]">Stock:</span> Available</p>
+            <div className="mt-5 grid gap-3 text-xs leading-6 text-[#1B1411]/70 sm:grid-cols-2">
               <p><span className="font-semibold text-[#1B1411]">Delivery:</span> 2–5 business days</p>
               <p><span className="font-semibold text-[#1B1411]">Care:</span> Soft cloth cleaning</p>
             </div>
@@ -1187,15 +1429,19 @@ function Gallery() {
           </div>
           <button className="inline-flex items-center gap-2 text-sm text-[#B89A5E]">View Gallery <ArrowRight className="h-4 w-4" /></button>
         </motion.div>
-        <div className="grid auto-rows-[220px] gap-4 md:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
           {gallery.map((img, index) => (
             <motion.div
               key={`${img}-${index}`}
               {...fadeUp}
               transition={{ ...fadeUp.transition, delay: index * 0.05 }}
-              className={`group overflow-hidden rounded-[2rem] ${index === 0 || index === 3 ? "md:row-span-2" : ""} ${index === 1 ? "md:col-span-2" : ""}`}
+              className="group aspect-[4/5] overflow-hidden rounded-[2rem]"
             >
-              <img src={img} alt="PEARLfectly pearl product and packaging gallery" className="h-full w-full object-cover opacity-90 transition duration-700 group-hover:scale-110 group-hover:opacity-100" />
+              <img
+                src={img}
+                alt="PEARLfectly pearl product and packaging gallery"
+                className="h-full w-full object-cover opacity-90 transition duration-700 group-hover:scale-110 group-hover:opacity-100"
+              />
             </motion.div>
           ))}
         </div>
@@ -1297,12 +1543,11 @@ function Footer() {
   );
 }
 
-function SearchOverlay({ open, onClose, onQuickView, onAddToCart }) {
+function SearchOverlay({ open, onClose, onQuickView, onAddToCart, products }) {
   const [query, setQuery] = useState("");
-  const [showAddedToast, setShowAddedToast] = useState(false);
-  const toastTimerRef = useRef(null);
   const [addedProductId, setAddedProductId] = useState(null);
   const [cartNotice, setCartNotice] = useState(false);
+  const [searchQuantities, setSearchQuantities] = useState({});
   const addedTimeoutRef = useRef(null);
   const noticeTimeoutRef = useRef(null);
 
@@ -1311,6 +1556,7 @@ function SearchOverlay({ open, onClose, onQuickView, onAddToCart }) {
       setQuery("");
       setAddedProductId(null);
       setCartNotice(false);
+      setSearchQuantities({});
 
       window.clearTimeout(addedTimeoutRef.current);
       window.clearTimeout(noticeTimeoutRef.current);
@@ -1341,33 +1587,56 @@ function SearchOverlay({ open, onClose, onQuickView, onAddToCart }) {
   }, []);
 
   const normalizedQuery = query.trim().toLowerCase();
+  const displayProducts = products.length ? products : fallbackProducts.map(normalizeProduct);
 
   const searchResults = normalizedQuery
-    ? products.filter((product) => {
+    ? displayProducts.filter((product) => {
         const searchableText = [
           product.name,
           product.category,
           product.tag,
+          product.status,
           product.metal,
           product.pearl,
+          product.description,
           String(product.price),
         ]
+          .filter(Boolean)
           .join(" ")
           .toLowerCase();
 
         return searchableText.includes(normalizedQuery);
       })
-    : products.slice(0, 4);
+    : displayProducts.slice(0, 4);
 
   const searchSuggestions = ["Earrings", "Gift Sets", "Pink", "Ivory", "Size Guide"];
+
+  const getSearchQuantity = (productId) => {
+    return searchQuantities[productId] ?? 1;
+  };
+
+  const updateSearchQuantity = (productId, change) => {
+    setSearchQuantities((prev) => {
+      const currentQuantity = prev[productId] ?? 1;
+      const nextQuantity = Math.max(1, currentQuantity + change);
+
+      return {
+        ...prev,
+        [productId]: nextQuantity,
+      };
+    });
+  };
 
   const handleQuickView = (product) => {
     onQuickView?.(product);
     onClose();
   };
 
-  const handleAddToCart = (product) => {
-    onAddToCart?.(product);
+  const handleAddToCart = (product, quantity = 1) => {
+    Array.from({ length: quantity }).forEach(() => {
+      onAddToCart?.(product);
+    });
+
     setAddedProductId(product.id);
     setCartNotice(true);
 
@@ -1467,6 +1736,7 @@ function SearchOverlay({ open, onClose, onQuickView, onAddToCart }) {
                 <div className="grid gap-3 sm:grid-cols-2">
                   {searchResults.map((product) => {
                     const isAdded = addedProductId === product.id;
+                    const quantity = getSearchQuantity(product.id);
 
                     return (
                       <motion.div
@@ -1487,9 +1757,9 @@ function SearchOverlay({ open, onClose, onQuickView, onAddToCart }) {
                             : "border-[#B89A5E]/20 bg-[#F7E8DD]"
                         }`}
                       >
-                        <div className="flex gap-4">
-                          <div className="relative shrink-0">
-                            <img src={product.image} alt={product.name} className="h-24 w-24 rounded-xl object-cover" />
+                        <div className="flex items-stretch gap-4">
+                          <div className="relative w-24 shrink-0 self-stretch overflow-hidden rounded-xl bg-[#F7E8DD]">
+                            <img src={product.image} alt={product.name} className="h-full min-h-24 w-24 object-cover" />
                           </div>
                           <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-3">
@@ -1508,21 +1778,47 @@ function SearchOverlay({ open, onClose, onQuickView, onAddToCart }) {
                             {product.pearl} · {product.metal}
                           </p>
 
-                          <div className="mt-4 flex flex-wrap gap-2">
+                          <div className="mt-4 grid w-full grid-cols-[88px_minmax(0,1fr)_minmax(0,1fr)] items-center gap-1.5">
+                            <div className="flex h-9 min-w-0 items-center justify-center rounded-full border border-[#B89A5E]/35 bg-[#FFF8EF]/70">
+                              <button
+                                type="button"
+                                onClick={() => updateSearchQuantity(product.id, -1)}
+                                disabled={quantity <= 1}
+                                className="grid h-9 w-7 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#F7E8DD] disabled:cursor-not-allowed disabled:opacity-40"
+                                aria-label={`Decrease quantity of ${product.name}`}
+                              >
+                                <Minus className="h-3.5 w-3.5" />
+                              </button>
+
+                              <span className="min-w-5 text-center text-xs font-semibold text-[#1B1411]">
+                                {quantity}
+                              </span>
+
+                              <button
+                                type="button"
+                                onClick={() => updateSearchQuantity(product.id, 1)}
+                                className="grid h-9 w-7 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#F7E8DD]"
+                                aria-label={`Increase quantity of ${product.name}`}
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+
                             <button
                               type="button"
                               onClick={() => handleQuickView(product)}
-                              className="rounded-full bg-[#1B1411] px-4 py-2 text-sm font-medium text-[#FFF8EF] transition hover:bg-[#B89A5E] hover:text-[#1B1411]"
+                              className="h-9 min-w-0 rounded-full bg-[#1B1411] px-2 text-[11px] font-semibold text-[#FFF8EF] transition hover:bg-[#B89A5E] hover:text-[#1B1411]"
                             >
                               Quick View
                             </button>
+
                             <motion.button
                               type="button"
                               whileTap={{ scale: 0.94 }}
                               animate={{ scale: isAdded ? 1.04 : 1 }}
                               transition={{ duration: 0.18, ease: "easeOut" }}
-                              onClick={() => handleAddToCart(product)}
-                              className={`overflow-hidden rounded-full border px-4 py-2 text-sm font-medium transition ${
+                              onClick={() => handleAddToCart(product, quantity)}
+                              className={`h-9 min-w-0 overflow-hidden rounded-full border px-2 text-[11px] font-semibold transition ${
                                 isAdded
                                   ? "border-[#B89A5E] bg-[#B89A5E] text-[#1B1411]"
                                   : "border-[#B89A5E]/40 text-[#1B1411] hover:bg-[#CFE9DF]/70"
@@ -1537,7 +1833,7 @@ function SearchOverlay({ open, onClose, onQuickView, onAddToCart }) {
                                   transition={{ duration: 0.16 }}
                                   className="block"
                                 >
-                                  {isAdded ? "Added" : "Add to Cart"}
+                                  {isAdded ? `Added ×${quantity}` : "Add to Cart"}
                                 </motion.span>
                               </AnimatePresence>
                             </motion.button>
@@ -1565,73 +1861,311 @@ function SearchOverlay({ open, onClose, onQuickView, onAddToCart }) {
   );
 }
 
-function CartDrawer({ open, onClose, cart, onRemoveItem }) {
-  const subtotal = cart.reduce((sum, product) => sum + product.price, 0);
+function CartDrawer({
+  open,
+  onClose,
+  cart,
+  cartCount,
+  onRemoveItem,
+  onRemoveAll,
+  onCheckout,
+  isCheckingOut,
+  checkoutNotice,
+}) {
+
+  const [removeQuantities, setRemoveQuantities] = useState({});
+  const [removingProductId, setRemovingProductId] = useState(null);
+
+  const subtotal = cart.reduce(
+    (sum, product) => sum + product.price * (product.cartQuantity ?? 1),
+    0
+  );
+
+  const getRemoveQuantity = (product) => {
+    const maxQuantity = product.cartQuantity ?? 1;
+    return Math.min(removeQuantities[product.id] ?? 1, maxQuantity);
+  };
+
+  const updateRemoveQuantity = (product, change) => {
+    const maxQuantity = product.cartQuantity ?? 1;
+
+    setRemoveQuantities((prev) => {
+      const current = prev[product.id] ?? 1;
+      const next = Math.min(maxQuantity, Math.max(1, current + change));
+
+      return {
+        ...prev,
+        [product.id]: next,
+      };
+    });
+  };
+
+  const handleRemoveQuantity = (product) => {
+    const quantityToRemove = getRemoveQuantity(product);
+
+    setRemovingProductId(product.id);
+
+    window.setTimeout(() => {
+      onRemoveItem(product.id, quantityToRemove);
+
+      setRemoveQuantities((prev) => {
+        const copy = { ...prev };
+        delete copy[product.id];
+        return copy;
+      });
+
+      setRemovingProductId(null);
+    }, 520);
+  };
+
+  const itemLabel = cartCount === 1 ? "item" : "items";
 
   return (
     <AnimatePresence>
       {open && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm">
-          <motion.aside initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 28, stiffness: 220 }} className="ml-auto flex h-full w-full max-w-md flex-col bg-[#FFF8EF] p-6">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm"
+        >
+          <motion.aside
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 28, stiffness: 220 }}
+            className="ml-auto flex h-full w-full max-w-md flex-col bg-[#FFF8EF] p-6"
+          >
             <div className="flex items-center justify-between border-b border-[#B89A5E]/20 pb-5">
-              <h3 className="font-serif text-3xl text-[#1B1411]">Your Cart</h3>
-              <button onClick={onClose} className="rounded-full p-2 hover:bg-black/5"><X className="text-[#1B1411]" /></button>
+              <div>
+                <h3 className="font-serif text-3xl text-[#1B1411]">
+                  Your Cart
+                </h3>
+                <p className="mt-1 text-sm text-[#1B1411]/55">
+                  {cartCount} {itemLabel} in cart
+                </p>
+              </div>
+
+              <button
+                onClick={onClose}
+                className="rounded-full p-2 hover:bg-black/5"
+                aria-label="Close cart"
+              >
+                <X className="text-[#1B1411]" />
+              </button>
             </div>
 
             <div className="flex-1 space-y-4 overflow-y-auto py-6">
               {cart.length === 0 ? (
                 <div className="rounded-[2rem] border border-[#B89A5E]/20 bg-[#F7E8DD] p-6 text-center">
                   <ShoppingBag className="mx-auto mb-4 h-8 w-8 text-[#B89A5E]" />
-                  <p className="font-serif text-2xl text-[#1B1411]">Your cart is empty</p>
+                  <p className="font-serif text-2xl text-[#1B1411]">
+                    Your cart is empty
+                  </p>
                   <p className="mt-2 text-sm leading-6 text-[#1B1411]/65">
                     Add a pearl piece from the collection to preview checkout.
                   </p>
-                  <a href="#shop" onClick={onClose} className="mt-5 inline-flex rounded-full bg-[#1B1411] px-5 py-3 text-sm font-medium text-[#FFF8EF] hover:bg-[#B89A5E] hover:text-[#1B1411]">
+                  <a
+                    href="#shop"
+                    onClick={onClose}
+                    className="mt-5 inline-flex rounded-full bg-[#1B1411] px-5 py-3 text-sm font-medium text-[#FFF8EF] hover:bg-[#B89A5E] hover:text-[#1B1411]"
+                  >
                     Shop Collection
                   </a>
                 </div>
               ) : (
-                cart.map((product, index) => (
-                  <motion.div
-                    key={`${product.id}-${index}`}
-                    layout
-                    initial={{ opacity: 0, x: 18 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 18 }}
-                    className="flex gap-4 rounded-2xl bg-[#F7E8DD] p-3"
-                  >
-                    <img src={product.image} alt={product.name} className="h-24 w-24 rounded-xl object-cover" />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="font-serif text-xl leading-tight text-[#1B1411]">{product.name}</p>
-                          <p className="mt-1 text-sm text-[#1B1411]/60">Qty 1 · {product.metal}</p>
+                <AnimatePresence mode="popLayout">
+                  {cart.map((product) => {
+                    const cartQuantity = product.cartQuantity ?? 1;
+                    const removeQuantity = getRemoveQuantity(product);
+
+                    return (
+                      <motion.div
+                        key={product.id}
+                        layout
+                        initial={{ opacity: 0, y: 18, scale: 0.98 }}
+                        animate={
+                          removingProductId === product.id
+                            ? {
+                                opacity: 0.72,
+                                y: -6,
+                                scale: 0.985,
+                                filter: "brightness(1.06)",
+                                boxShadow: "0 22px 60px rgba(184, 154, 94, 0.22)",
+                              }
+                            : {
+                                opacity: 1,
+                                y: 0,
+                                scale: 1,
+                                filter: "brightness(1)",
+                                boxShadow: "0 0 0 rgba(184, 154, 94, 0)",
+                              }
+                        }
+                        exit={{
+                          opacity: 0,
+                          y: -18,
+                          scale: 0.96,
+                          filter: "blur(2px)",
+                        }}
+                        transition={{
+                          duration: 0.52,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                        className="relative overflow-hidden rounded-2xl bg-[#F7E8DD] p-3"
+                      >
+                        <AnimatePresence>
+                          {removingProductId === product.id && (
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="pointer-events-none absolute inset-0 z-10 rounded-2xl"
+                            >
+                              <motion.div
+                                initial={{ x: "-120%" }}
+                                animate={{ x: "260%" }}
+                                transition={{ duration: 0.52, ease: "easeInOut" }}
+                                className="absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-[#FFF8EF]/75 to-transparent"
+                              />
+                              <div className="absolute inset-0 rounded-2xl border border-[#B89A5E]/35" />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        <div className="flex gap-4">
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="h-24 w-24 rounded-xl object-cover"
+                          />
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="font-serif text-xl leading-tight text-[#1B1411]">
+                                  {product.name}
+                                </p>
+                                <p className="mt-1 text-sm text-[#1B1411]/60">
+                                  {product.metal}
+                                </p>
+                              </div>
+
+                              <motion.span
+                                key={cartQuantity}
+                                initial={{ opacity: 0, y: -6, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                transition={{ duration: 0.18 }}
+                                className="shrink-0 rounded-full border border-[#B89A5E]/25 bg-[#FFF8EF]/85 px-3 py-1 text-xs font-semibold text-[#4A3832]"
+                              >
+                                Quantity: {cartQuantity}
+                              </motion.span>
+                            </div>
+
+                            <motion.p
+                              key={product.price * cartQuantity}
+                              initial={{ opacity: 0, y: 4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.18 }}
+                              className="mt-3 font-medium text-[#1B1411]"
+                            >
+                              {formatPrice(product.price * cartQuantity)}
+                            </motion.p>
+                          </div>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => onRemoveItem(index)}
-                          className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#B89A5E]/25 bg-[#FFF8EF]/80 text-[#4A3832] transition hover:border-[#B89A5E] hover:bg-[#1B1411] hover:text-[#FFF8EF]"
-                          aria-label={`Remove ${product.name} from cart`}
-                        >
-                          <X className="h-4 w-4 stroke-[1.8]" />
-                        </button>
-                      </div>
+                        <div className="mt-4 flex items-center justify-between gap-3 border-t border-[#B89A5E]/15 pt-3">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8A6A3F]">
+                            Remove
+                          </p>
 
-                      <div className="mt-3 flex items-center justify-between gap-3">
-                        <p className="font-medium text-[#1B1411]">{formatPrice(product.price)}</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-9 items-center rounded-full border border-[#B89A5E]/30 bg-[#FFF8EF]/80">
+                              <button
+                                type="button"
+                                onClick={() => updateRemoveQuantity(product, -1)}
+                                disabled={removeQuantity <= 1}
+                                className="grid h-9 w-8 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#F7E8DD] disabled:cursor-not-allowed disabled:opacity-40"
+                              >
+                                <Minus className="h-3.5 w-3.5" />
+                              </button>
+
+                              <motion.span
+                                key={removeQuantity}
+                                initial={{ opacity: 0, y: 5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.14 }}
+                                className="min-w-6 text-center text-xs font-semibold text-[#1B1411]"
+                              >
+                                {removeQuantity}
+                              </motion.span>
+
+                              <button
+                                type="button"
+                                onClick={() => updateRemoveQuantity(product, 1)}
+                                disabled={removeQuantity >= cartQuantity}
+                                className="grid h-9 w-8 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#F7E8DD] disabled:cursor-not-allowed disabled:opacity-40"
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+
+                            <motion.button
+                              type="button"
+                              whileTap={{ scale: 0.94 }}
+                              disabled={removingProductId === product.id}
+                              onClick={() => handleRemoveQuantity(product)}
+                              className="rounded-full bg-[#1B1411] px-4 py-2 text-xs font-semibold text-[#FFF8EF] shadow-lg shadow-black/10 transition hover:bg-[#B89A5E] hover:text-[#1B1411] disabled:cursor-wait disabled:opacity-70"
+                            >
+                              {removingProductId === product.id ? "Removing..." : "Remove"}
+                            </motion.button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
               )}
             </div>
 
             <div className="border-t border-[#B89A5E]/20 pt-5">
-              <div className="mb-5 flex justify-between text-[#1B1411]"><span>Subtotal</span><span className="font-serif text-2xl">{formatPrice(subtotal)}</span></div>
-              <button disabled={cart.length === 0} className="w-full rounded-full bg-[#1B1411] px-6 py-4 text-sm font-medium text-[#FFF8EF] transition hover:bg-[#B89A5E] hover:text-[#1B1411] disabled:cursor-not-allowed disabled:opacity-50">
-                Secure Checkout
-              </button>
+              <div className="mb-3 flex justify-between text-sm text-[#1B1411]/65">
+                <span>Total items</span>
+                <span>
+                  {cartCount} {itemLabel}
+                </span>
+              </div>
+
+              <div className="mb-5 flex justify-between text-[#1B1411]">
+                <span>Subtotal</span>
+                <span className="font-serif text-2xl">
+                  {formatPrice(subtotal)}
+                </span>
+              </div>
+
+              {checkoutNotice && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  className={`mb-4 rounded-2xl border px-4 py-3 text-sm ${
+                    checkoutNotice.type === "success"
+                      ? "border-[#B89A5E]/30 bg-[#CFE9DF]/60 text-[#1B1411]"
+                      : "border-[#F4C6D3]/60 bg-[#F4C6D3]/45 text-[#1B1411]"
+                  }`}
+                >
+                  {checkoutNotice.message}
+                </motion.div>
+              )}
+
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.97 }}
+                onClick={onCheckout}
+                disabled={cart.length === 0 || isCheckingOut}
+                className="w-full rounded-full bg-[#1B1411] px-6 py-4 text-sm font-medium text-[#FFF8EF] transition hover:bg-[#B89A5E] hover:text-[#1B1411] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isCheckingOut ? "Placing Order..." : "Secure Checkout"}
+              </motion.button>
             </div>
           </motion.aside>
         </motion.div>
@@ -1640,7 +2174,7 @@ function CartDrawer({ open, onClose, cart, onRemoveItem }) {
   );
 }
 
-function QuickViewModal({ product, onClose, onAddToCart }) {
+function QuickViewModal({ product, onClose, onAddToCart, showReturnButton = false, onReturnToSearch }) {
   return (
     <AnimatePresence>
       {product && (
@@ -1650,7 +2184,14 @@ function QuickViewModal({ product, onClose, onAddToCart }) {
               <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
             </div>
             <div className="relative overflow-y-auto p-8 sm:p-10">
-              <button onClick={onClose} className="absolute right-5 top-5 rounded-full p-2 hover:bg-black/5"><X className="text-[#1B1411]" /></button>
+              <button
+                type="button"
+                onClick={showReturnButton ? onReturnToSearch : onClose}
+                className="absolute right-5 top-5 z-10 grid h-10 w-10 place-items-center rounded-full hover:bg-black/5"
+                aria-label={showReturnButton ? "Return to search" : "Close quick view"}
+              >
+                <X className="h-5 w-5 text-[#1B1411]" />
+              </button>
               <p className="text-xs uppercase tracking-[0.32em] text-[#8A6A3F]">{product.category}</p>
               <h3 className="mt-3 font-serif text-4xl text-[#1B1411]">{product.name}</h3>
               <p className="mt-4 font-serif text-3xl text-[#1B1411]">{formatPrice(product.price)}</p>
@@ -1661,7 +2202,7 @@ function QuickViewModal({ product, onClose, onAddToCart }) {
                 <button onClick={() => { onAddToCart(product); onClose(); }} className="rounded-full bg-[#1B1411] px-6 py-4 text-sm font-medium text-[#FFF8EF] hover:bg-[#B89A5E] hover:text-[#1B1411]">
                   Add to Cart
                 </button>
-                <a href="#shop" onClick={onClose} className="rounded-full border border-[#B89A5E]/40 px-6 py-4 text-center text-sm font-medium text-[#1B1411] hover:bg-[#B89A5E]/10">
+                <a href="#product-details" onClick={onClose} className="rounded-full border border-[#B89A5E]/40 px-6 py-4 text-center text-sm font-medium text-[#1B1411] hover:bg-[#B89A5E]/10">
                   View Details
                 </a>
               </div>
@@ -1708,38 +2249,208 @@ export default function PEARLfectlyPearlsWebsite() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [quickView, setQuickView] = useState(null);
+  const [quickViewSource, setQuickViewSource] = useState(null);
+  const [products, setProducts] = useState([]);
 
   const [cart, setCart] = useState([]);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [checkoutNotice, setCheckoutNotice] = useState(null);
 
-  const addToCart = (product) => {
-    setCart((prev) => [...prev, product]);
+  const cartCount = cart.reduce(
+    (sum, item) => sum + (item.cartQuantity ?? 1),
+    0
+  );
+
+  const addToCart = (product, quantity = 1) => {
+    setCart((prev) => {
+      const existingItem = prev.find((item) => item.id === product.id);
+
+      if (existingItem) {
+        return prev.map((item) =>
+          item.id === product.id
+            ? {
+                ...item,
+                cartQuantity: (item.cartQuantity ?? 1) + quantity,
+              }
+            : item
+        );
+      }
+
+      return [
+        ...prev,
+        {
+          ...product,
+          cartQuantity: quantity,
+        },
+      ];
+    });
   };
 
-  const removeFromCart = (indexToRemove) => {
-    setCart((prev) => prev.filter((_, index) => index !== indexToRemove));
+  const handleCheckout = async () => {
+    if (cart.length === 0 || isCheckingOut) return;
+
+    setIsCheckingOut(true);
+    setCheckoutNotice(null);
+
+    const items = cart.map((item) => ({
+      id: item.id,
+      name: item.name,
+      category: item.category,
+      price: Number(item.price || 0),
+      quantity: item.cartQuantity ?? 1,
+      image: item.image,
+      metal: item.metal,
+    }));
+
+    const total = items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customerName: "Guest Customer",
+          customerEmail: "guest@example.com",
+          items,
+          itemCount: cartCount,
+          total,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Checkout failed");
+      }
+
+      const order = await response.json();
+
+      setCart([]);
+      setCheckoutNotice({
+        type: "success",
+        message: `Order ${order.orderNumber} placed successfully.`,
+      });
+
+      setTimeout(() => {
+        setCheckoutNotice(null);
+      }, 4000);
+    } catch (error) {
+      console.error(error);
+
+      setCheckoutNotice({
+        type: "error",
+        message: "Checkout failed. Please try again.",
+      });
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
+
+  const removeFromCart = (productId, quantityToRemove = 1) => {
+    setCart((prev) =>
+      prev
+        .map((item) => {
+          if (item.id !== productId) return item;
+
+          const nextQuantity = (item.cartQuantity ?? 1) - quantityToRemove;
+
+          return {
+            ...item,
+            cartQuantity: nextQuantity,
+          };
+        })
+        .filter((item) => (item.cartQuantity ?? 1) > 0)
+    );
+  };
+
+  const removeAllFromCart = (productId) => {
+    setCart((prev) => prev.filter((item) => item.id !== productId));
+  };
+
+  const loadProducts = async () => {
+    try {
+      const response = await fetch("/api/products", { cache: "no-store" });
+      if (!response.ok) throw new Error("Could not load products");
+      const data = await response.json();
+      setProducts(Array.isArray(data) ? data.map(normalizeProduct) : []);
+    } catch (error) {
+      console.error(error);
+      setProducts([]);
+    }
+  };
+
+  useEffect(() => {
+    loadProducts();
+
+    const refreshWhenReturningToTab = () => loadProducts();
+    window.addEventListener("focus", refreshWhenReturningToTab);
+
+    return () => {
+      window.removeEventListener("focus", refreshWhenReturningToTab);
+    };
+  }, []);
+
+
+  const openQuickView = (product) => {
+    setQuickView(product);
+    setQuickViewSource(null);
+  };
+
+  const openQuickViewFromSearch = (product) => {
+    setQuickView(product);
+    setQuickViewSource("search");
+    setSearchOpen(false);
+  };
+
+  const closeQuickView = () => {
+    setQuickView(null);
+    setQuickViewSource(null);
+  };
+
+  const returnToSearchFromQuickView = () => {
+    setQuickView(null);
+    setQuickViewSource(null);
+    setSearchOpen(true);
   };
 
   return (
     <div className="scroll-smooth">
       <main className="min-h-screen bg-[#FFF8EF] font-sans text-[#1B1411] antialiased">
         <div className="pointer-events-none fixed inset-0 z-[1] opacity-[0.025] mix-blend-multiply" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E')" }} />
-        <Navbar onSearch={() => setSearchOpen(true)} onCart={() => setCartOpen(true)} cartCount={cart.length} />
+        <Navbar
+          onSearch={() => setSearchOpen(true)}
+          onCart={() => setCartOpen(true)}
+          cartCount={cartCount}
+        />
         <Hero />
         <TrustBar />
-        <ProductShowcase onQuickView={setQuickView} addToCart={addToCart} />
+        <ProductShowcase products={products} onQuickView={openQuickView} addToCart={addToCart} />
         <FeaturedCollections />
         <About />
         <Craftsmanship />
-        <ProductDetailLayout addToCart={addToCart} />
+        <ProductDetailLayout products={products} addToCart={addToCart} />
         <LuxuryExperience />
         <Testimonials />
         <Gallery />
         <Newsletter />
         <FAQ />
         <Footer />
-        <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} onQuickView={setQuickView} onAddToCart={addToCart} />
-        <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} onRemoveItem={removeFromCart} />
-        <QuickViewModal product={quickView} onClose={() => setQuickView(null)} onAddToCart={addToCart} />
+        <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} onQuickView={openQuickViewFromSearch} onAddToCart={addToCart} products={products} />
+        <CartDrawer
+          open={cartOpen}
+          onClose={() => setCartOpen(false)}
+          cart={cart}
+          cartCount={cartCount}
+          onRemoveItem={removeFromCart}
+          onRemoveAll={removeAllFromCart}
+          onCheckout={handleCheckout}
+          isCheckingOut={isCheckingOut}
+          checkoutNotice={checkoutNotice}
+        />
+        <QuickViewModal product={quickView} onClose={closeQuickView} onAddToCart={addToCart} showReturnButton={quickViewSource === "search"} onReturnToSearch={returnToSearchFromQuickView} />
       </main>
     </div>
   );
