@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function SignInPage() {
+function SignInContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
@@ -34,7 +35,10 @@ export default function SignInPage() {
   return (
     <div className="min-h-screen bg-[#FFF8EF] px-6 py-12 text-[#1B1411] dark:bg-[#1B1411] dark:text-[#FFF8EF]">
       <div className="mx-auto max-w-xl rounded-[3rem] border border-[#B89A5E]/20 bg-[#FFFDF7] p-10 shadow-2xl dark:border-white/10 dark:bg-[#161616]">
-        <h1 className="font-serif text-4xl text-[#1B1411] dark:text-[#FFF8EF]">Sign In</h1>
+        <h1 className="font-serif text-4xl text-[#1B1411] dark:text-[#FFF8EF]">
+          Sign In
+        </h1>
+
         <p className="mt-3 text-sm text-[#1B1411]/70 dark:text-white/60">
           Continue with email, or use Google / Facebook if configured.
         </p>
@@ -80,6 +84,7 @@ export default function SignInPage() {
           >
             Google
           </button>
+
           <button
             type="button"
             onClick={() => signIn("facebook", { callbackUrl })}
@@ -90,9 +95,27 @@ export default function SignInPage() {
         </div>
 
         <p className="mt-6 text-center text-sm text-[#1B1411]/70 dark:text-white/60">
-          New here? <a href="/signup" className="font-semibold text-[#1B1411] underline">Create an account</a>.
+          New here?{" "}
+          <a href="/signup" className="font-semibold text-[#1B1411] underline">
+            Create an account
+          </a>
+          .
         </p>
       </div>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#FFF8EF] px-6 py-12 text-[#1B1411]">
+          Loading...
+        </div>
+      }
+    >
+      <SignInContent />
+    </Suspense>
   );
 }

@@ -37,8 +37,11 @@ function toNumber(value) {
 }
 
 function getStatus(product) {
-  if (product.status) return product.status;
-  return toNumber(product.stock) <= 5 ? "Low Stock" : "Active";
+  const stock = toNumber(product.stock);
+
+  if (stock <= 0) return "Out of Stock";
+  if (stock <= 5) return "Low Stock";
+  return product.status || "Active";
 }
 
 function AdminBackground() {
@@ -336,12 +339,26 @@ export default function AdminInventoryPage() {
     showToast.timeoutId = window.setTimeout(() => setToast(null), 3000);
   }
 
-  function handleImageFile(file, isEdit = false) {
+  async function handleImageFile(file, isEdit = false) {
     if (!file || !file.type?.startsWith("image/")) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const image = event.target.result;
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        showToast("error", "Unable to upload image.");
+        return;
+      }
+
+      const data = await response.json();
+      const image = data.url;
+
       if (isEdit) {
         setEditForm((prev) => ({ ...prev, image }));
         setEditPreviewImage(image);
@@ -349,8 +366,12 @@ export default function AdminInventoryPage() {
         setForm((prev) => ({ ...prev, image }));
         setPreviewImage(image);
       }
-    };
-    reader.readAsDataURL(file);
+
+      showToast("success", "Image uploaded.");
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      showToast("error", "Unable to upload image.");
+    }
   }
 
   async function handleAddProduct(event) {

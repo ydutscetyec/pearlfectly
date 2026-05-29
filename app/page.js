@@ -848,6 +848,8 @@ function ProductCard({ product, onQuickView, addToCart }) {
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   const [flyItem, setFlyItem] = useState(null);
+  const stock = Number(product.stock ?? 0);
+  const isOutOfStock = stock <= 0;
 
   const productImageRef = useRef(null);
   const addedTimeoutRef = useRef(null);
@@ -888,6 +890,7 @@ function ProductCard({ product, onQuickView, addToCart }) {
   };
 
   const handleCardAddToCart = () => {
+    if (isOutOfStock || quantity > stock) return;
     const sourceRect = productImageRef.current?.getBoundingClientRect();
     const cartRect = getCartTargetRect();
 
@@ -1049,8 +1052,9 @@ function ProductCard({ product, onQuickView, addToCart }) {
 
                 <button
                   type="button"
-                  onClick={() => setQuantity((prev) => prev + 1)}
-                  className="grid h-9 w-8 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#F7E8DD]"
+                  onClick={() => setQuantity((prev) => Math.min(stock, prev + 1))}
+                  disabled={isOutOfStock || quantity >= stock}
+                  className="grid h-9 w-8 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#F7E8DD] disabled:cursor-not-allowed disabled:opacity-40"
                   aria-label={`Increase quantity of ${product.name}`}
                 >
                   <Plus className="h-3.5 w-3.5" />
@@ -1817,23 +1821,24 @@ function SearchOverlay({ open, onClose, onQuickView, onAddToCart, products }) {
                               whileTap={{ scale: 0.94 }}
                               animate={{ scale: isAdded ? 1.04 : 1 }}
                               transition={{ duration: 0.18, ease: "easeOut" }}
-                              onClick={() => handleAddToCart(product, quantity)}
-                              className={`h-9 min-w-0 overflow-hidden rounded-full border px-2 text-[11px] font-semibold transition ${
+                              onClick={handleCardAddToCart}
+                              disabled={isOutOfStock}
+                              className={`min-w-0 flex-1 overflow-hidden rounded-full px-3 py-2 text-center text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                                 isAdded
-                                  ? "border-[#B89A5E] bg-[#B89A5E] text-[#1B1411]"
-                                  : "border-[#B89A5E]/40 text-[#1B1411] hover:bg-[#CFE9DF]/70"
+                                  ? "bg-[#CFE9DF] text-[#1B1411] shadow-sm"
+                                  : "text-[#8A6A3F] hover:bg-[#F3E7D6]/70 hover:text-[#1B1411]"
                               }`}
                             >
                               <AnimatePresence mode="wait" initial={false}>
                                 <motion.span
-                                  key={isAdded ? "added" : "add"}
+                                  key={isOutOfStock ? "out" : isAdded ? "added" : "add"}
                                   initial={{ opacity: 0, y: 8 }}
                                   animate={{ opacity: 1, y: 0 }}
                                   exit={{ opacity: 0, y: -8 }}
                                   transition={{ duration: 0.16 }}
-                                  className="block"
+                                  className="block truncate text-center"
                                 >
-                                  {isAdded ? `Added ×${quantity}` : "Add to Cart"}
+                                  {isOutOfStock ? "Out of Stock" : isAdded ? "Added ✓" : "Add to Cart"}
                                 </motion.span>
                               </AnimatePresence>
                             </motion.button>
@@ -2262,15 +2267,25 @@ export default function PEARLfectlyPearlsWebsite() {
   );
 
   const addToCart = (product, quantity = 1) => {
+    const stock = Number(product.stock ?? 0);
+    if (stock <= 0) return;
+
     setCart((prev) => {
       const existingItem = prev.find((item) => item.id === product.id);
+      const existingQuantity = existingItem?.cartQuantity ?? 0;
+      const allowedQuantity = Math.max(0, stock - existingQuantity);
+      const quantityToAdd = Math.min(quantity, allowedQuantity);
+
+      if (quantityToAdd <= 0) {
+        return prev;
+      }
 
       if (existingItem) {
         return prev.map((item) =>
           item.id === product.id
             ? {
                 ...item,
-                cartQuantity: (item.cartQuantity ?? 1) + quantity,
+                cartQuantity: (item.cartQuantity ?? 1) + quantityToAdd,
               }
             : item
         );
@@ -2280,7 +2295,7 @@ export default function PEARLfectlyPearlsWebsite() {
         ...prev,
         {
           ...product,
-          cartQuantity: quantity,
+          cartQuantity: quantityToAdd,
         },
       ];
     });
@@ -2329,6 +2344,8 @@ export default function PEARLfectlyPearlsWebsite() {
       const order = await response.json();
 
       setCart([]);
+      await loadProducts();
+
       setCheckoutNotice({
         type: "success",
         message: `Order ${order.orderNumber} placed successfully.`,
