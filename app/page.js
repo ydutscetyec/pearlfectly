@@ -1,6 +1,6 @@
 "use client"; 
 
-import React, { useMemo, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -26,8 +26,6 @@ import {
   MessageCircle,
   ZoomIn,
   SlidersHorizontal,
-  Moon,
-  Sun,
   ArrowRight,
   Quote,
   Plus,
@@ -88,7 +86,7 @@ const products = [
   {
     id: 2,
     name: "Classic Pearl Gift Box",
-    category: "Earrings",
+    category: "Gift Sets",
     price: 960,
     rating: 5,
     tag: "Gift Pick",
@@ -99,7 +97,7 @@ const products = [
   {
     id: 3,
     name: "Blush Pearl Size Set",
-    category: "Earrings",
+    category: "Size Guide",
     price: 720,
     rating: 4,
     tag: "Size Guide",
@@ -120,46 +118,46 @@ const products = [
   },
   {
     id: 5,
-    name: "Pearl Glow Pendant",
-    category: "Necklaces",
+    name: "Pastel Weekday Stud Box",
+    category: "Gift Sets",
     price: 1180,
     rating: 5,
     tag: "New Arrival",
-    metal: "Gold-tone Chain",
-    pearl: "Ivory Pearl Pendant",
+    metal: "Gold-tone Backs",
+    pearl: "Ivory, Pink, Champagne, and Gray Pearl Studs",
     image: "/weekly-pearl-box.png",
   },
   {
     id: 6,
-    name: "Soft Mint Pearl Bracelet",
-    category: "Bracelets",
+    name: "Soft Blush Pearl Studs",
+    category: "Earrings",
     price: 1120,
     rating: 5,
     tag: "Everyday",
-    metal: "Adjustable Gold-tone Clasp",
-    pearl: "Freshwater Pearls",
+    metal: "Gold-tone Setting",
+    pearl: "Freshwater Pearl Studs",
     image: "/pink-pearl-gift-boxes.png",
   },
   {
     id: 7,
-    name: "Blush Pearl Ring",
-    category: "Rings",
+    name: "Pearl Stud Size Guide",
+    category: "Size Guide",
     price: 890,
     rating: 5,
     tag: "Minimal",
-    metal: "Gold-tone Band",
-    pearl: "Single Blush Pearl",
+    metal: "Gold-tone Backing",
+    pearl: "10 mm to 16 mm Pearl Stud Options",
     image: "/pearl-size-guide.png",
   },
   {
     id: 8,
-    name: "Pearlfectly Essentials Box",
-    category: "Earrings",
+    name: "PEARLfectly Essentials Box",
+    category: "Gift Sets",
     price: 1480,
     rating: 5,
     tag: "Signature Box",
     metal: "Mixed Gold-tone Backs",
-    pearl: "Ivory, Pink, and Champagne Pearls",
+    pearl: "Ivory, Pink, and Champagne Pearl Studs",
     image: "/weekly-pearl-box.png",
   },
 ];
@@ -224,11 +222,7 @@ const fadeUp = {
 };
 
 function formatPrice(value) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "PHP",
-    maximumFractionDigits: 0,
-  }).format(value);
+  return `₱${Number(value).toLocaleString("en-PH")}`;
 }
 
 function SectionLabel({ children, dark = false }) {
@@ -236,12 +230,45 @@ function SectionLabel({ children, dark = false }) {
     <div className="mb-5 flex items-center gap-3">
       <span className="h-px w-10 bg-[#B89A5E]" />
       <span
-        className={`text-xs font-semibold uppercase tracking-[0.32em] ${
+        className={`text-xs font-semibold uppercase tracking-[0.22em] ${
           dark ? "text-[#B89A5E]" : "text-[#8A6A3F]"
         }`}
       >
         {children}
       </span>
+    </div>
+  );
+}
+
+function SoftBackgroundDecor() {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-[#CFE9DF]/35 blur-3xl" />
+      <div className="absolute right-[-6rem] top-1/3 h-80 w-80 rounded-full bg-[#F4C6D3]/30 blur-3xl" />
+      <div className="absolute bottom-[-8rem] left-1/3 h-80 w-80 rounded-full bg-[#B89A5E]/10 blur-3xl" />
+      <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(255,248,239,0.90),rgba(255,253,247,0.72),rgba(247,232,221,0.78))]" />
+    </div>
+  );
+}
+
+function MintBackgroundDecor() {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute -left-24 top-10 h-80 w-80 rounded-full bg-[#FFF8EF]/45 blur-3xl" />
+      <div className="absolute right-[-7rem] top-24 h-96 w-96 rounded-full bg-[#F4C6D3]/25 blur-3xl" />
+      <div className="absolute bottom-[-8rem] left-1/2 h-80 w-80 rounded-full bg-[#B89A5E]/10 blur-3xl" />
+      <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(220,239,232,0.88),rgba(207,233,223,0.78),rgba(255,248,239,0.50))]" />
+    </div>
+  );
+}
+
+function DarkBackgroundDecor() {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute -left-28 top-16 h-96 w-96 rounded-full bg-[#B89A5E]/18 blur-3xl" />
+      <div className="absolute right-[-8rem] top-1/3 h-96 w-96 rounded-full bg-[#CFE9DF]/10 blur-3xl" />
+      <div className="absolute bottom-[-10rem] left-1/3 h-96 w-96 rounded-full bg-[#F4C6D3]/10 blur-3xl" />
+      <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(27,20,17,0.96),rgba(74,56,50,0.82),rgba(27,20,17,0.94))]" />
     </div>
   );
 }
@@ -278,7 +305,7 @@ function LuxuryButton({ children, variant = "primary", className = "", onClick, 
   );
 }
 
-function Navbar({ darkMode, setDarkMode, onSearch, onCart, cartCount = 0 }) {
+function Navbar({ onSearch, onCart, cartCount = 0 }) {
   const [open, setOpen] = useState(false);
   const [mega, setMega] = useState(false);
 
@@ -303,30 +330,152 @@ function Navbar({ darkMode, setDarkMode, onSearch, onCart, cartCount = 0 }) {
     },
   ];
 
-  const navText =
-    "text-[#4A3832] drop-shadow-[0_1px_8px_rgba(255,248,239,0.85)] transition-colors duration-300 group-hover/nav:text-[#FFF8EF] group-focus-within/nav:text-[#FFF8EF] dark:text-[#4A3832] dark:group-hover/nav:text-[#FFF8EF] dark:group-focus-within/nav:text-[#FFF8EF]";
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isNavVisible, setIsNavVisible] = useState(true);
+  const lastScrollY = useRef(0);
+  const hiddenAtScrollY = useRef(null);
+  const lastRevealScrollY = useRef(null);
 
-  const iconButton =
-    "grid h-12 w-12 place-items-center rounded-full text-[#4A3832] drop-shadow-[0_1px_8px_rgba(255,248,239,0.85)] transition duration-300 hover:bg-[#4A3832]/20 hover:text-[#FFF8EF] group-hover/nav:text-[#FFF8EF] group-hover/nav:drop-shadow-none group-focus-within/nav:text-[#FFF8EF] group-focus-within/nav:drop-shadow-none dark:text-[#4A3832] dark:hover:bg-white/10 dark:group-hover/nav:text-[#FFF8EF] dark:group-focus-within/nav:text-[#FFF8EF]";
+  useEffect(() => {
+    const hideAfterScrollY = 24;
+    const scrollTolerance = 6;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrollingDown = currentScrollY > lastScrollY.current + scrollTolerance;
+      const scrollingUp = currentScrollY < lastScrollY.current - scrollTolerance;
+
+      setIsScrolled(currentScrollY > hideAfterScrollY);
+
+      if (open || mega) {
+        setIsNavVisible(true);
+        lastScrollY.current = currentScrollY;
+        return;
+      }
+
+      if (currentScrollY <= hideAfterScrollY) {
+        setIsNavVisible(true);
+        lastScrollY.current = currentScrollY;
+        return;
+      }
+
+      if (scrollingDown) {
+        setIsNavVisible(false);
+      }
+
+      if (scrollingUp) {
+        setIsNavVisible(true);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    lastScrollY.current = window.scrollY;
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [open, mega]);
+
+  const showNavFromFloatingButton = () => {
+    const currentScrollY = window.scrollY;
+
+    setIsScrolled(currentScrollY > 24);
+    setIsNavVisible(true);
+    setMega(false);
+    hiddenAtScrollY.current = null;
+    lastRevealScrollY.current = currentScrollY;
+    lastScrollY.current = currentScrollY;
+  };
+
+  const navIsSolid = isScrolled || mega || open;
+
+  const handleNavClick = (event, href) => {
+    if (!href.startsWith("#")) return;
+
+    event.preventDefault();
+    setMega(false);
+    setOpen(false);
+
+    const target = document.querySelector(href);
+    if (!target) return;
+
+    setIsNavVisible(href === "#home");
+
+    const headerHeight = document.querySelector("header")?.offsetHeight ?? 180;
+    const top = target.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
+
+    window.scrollTo({
+      top,
+      behavior: "smooth",
+    });
+
+    window.history.pushState(null, "", href);
+
+    if (href !== "#home") {
+      setIsScrolled(true);
+    } else {
+      setIsScrolled(false);
+    }
+  };
+
+  const navText = `${
+    navIsSolid  
+      ? "text-[#FFF8EF] drop-shadow-none"
+      : "text-[#4A3832] drop-shadow-[0_1px_8px_rgba(255,248,239,0.85)]"
+  } transition-colors duration-300 group-hover/nav:text-[#FFF8EF] group-focus-within/nav:text-[#FFF8EF]`;
+
+  const iconButton = `grid h-12 w-12 place-items-center rounded-full ${
+    navIsSolid
+      ? "text-[#FFF8EF] drop-shadow-none hover:bg-[#FFF8EF]/15"
+      : "text-[#4A3832] drop-shadow-[0_1px_8px_rgba(255,248,239,0.85)] hover:bg-[#4A3832]/15"
+  } transition duration-300 hover:text-[#FFF8EF] group-hover/nav:text-[#FFF8EF] group-hover/nav:drop-shadow-none group-focus-within/nav:text-[#FFF8EF] group-focus-within/nav:drop-shadow-none`;
 
   return (
-    <header className="group/nav fixed inset-x-0 top-0 z-50 border-b border-transparent bg-transparent shadow-none transition-all duration-300 before:pointer-events-none before:absolute before:inset-0 before:z-0 before:bg-gradient-to-b before:from-black/25 before:via-black/10 before:to-transparent before:opacity-100 before:transition-opacity before:duration-300 hover:border-[#D8C7A3]/40 hover:bg-[#FFF8EF]/95 hover:shadow-sm hover:shadow-black/5 hover:backdrop-blur-xl hover:before:opacity-0 focus-within:border-[#D8C7A3]/40 focus-within:bg-[#FFF8EF]/95 focus-within:shadow-sm focus-within:shadow-black/5 focus-within:backdrop-blur-xl focus-within:before:opacity-0 dark:hover:border-white/10 dark:hover:bg-[#1B1411]/95 dark:focus-within:border-white/10 dark:focus-within:bg-[#1B1411]/95">
+    <>
+      <AnimatePresence>
+        {!isNavVisible && !open && !mega && isScrolled && (
+          <motion.button
+            type="button"
+            onClick={showNavFromFloatingButton}
+            initial={{ opacity: 0, x: -18, scale: 0.94 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: -18, scale: 0.94 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="fixed left-4 top-6 z-[65] grid h-12 w-12 place-items-center rounded-full border border-[#B89A5E]/35 bg-[#4A3832]/90 text-[#FFF8EF] shadow-xl shadow-black/10 backdrop-blur-xl transition hover:bg-[#B89A5E] hover:text-[#1B1411] sm:left-6 lg:left-8"
+            aria-label="Show navigation bar"
+          >
+            <Menu className="h-6 w-6 stroke-[1.7]" />
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      <header
+        className={`group/nav fixed inset-x-0 top-0 z-50 transform overflow-hidden border-b transition-all duration-300 ease-in-out ${
+          isNavVisible || open || mega ? "translate-y-0" : "-translate-y-full"
+        } before:pointer-events-none before:absolute before:inset-0 before:z-0 before:transition-opacity before:duration-300 after:pointer-events-none after:absolute after:inset-x-10 after:bottom-0 after:z-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[#B89A5E]/45 after:to-transparent after:transition-opacity after:duration-300 ${
+          navIsSolid
+            ? "border-[#B89A5E]/25 bg-[#1B1411]/55 shadow-xl shadow-black/10 backdrop-blur-2xl before:opacity-100 before:bg-[radial-gradient(circle_at_16%_18%,rgba(184,154,94,0.20),transparent_26%),radial-gradient(circle_at_78%_16%,rgba(207,233,223,0.12),transparent_28%),linear-gradient(135deg,rgba(27,20,17,0.78),rgba(74,56,50,0.48))] after:opacity-100"
+            : "border-transparent bg-transparent shadow-none before:opacity-100 before:bg-gradient-to-b before:from-black/25 before:via-black/10 before:to-transparent after:opacity-0"
+        } hover:border-[#B89A5E]/25 hover:bg-[#1B1411]/55 hover:shadow-xl hover:shadow-black/10 hover:backdrop-blur-2xl hover:before:opacity-100 hover:before:bg-[radial-gradient(circle_at_16%_18%,rgba(184,154,94,0.20),transparent_26%),radial-gradient(circle_at_78%_16%,rgba(207,233,223,0.12),transparent_28%),linear-gradient(135deg,rgba(27,20,17,0.78),rgba(74,56,50,0.48))] hover:after:opacity-100 focus-within:border-[#B89A5E]/25 focus-within:bg-[#1B1411]/55 focus-within:shadow-xl focus-within:shadow-black/10 focus-within:backdrop-blur-2xl focus-within:before:opacity-100 focus-within:before:bg-[radial-gradient(circle_at_16%_18%,rgba(184,154,94,0.20),transparent_26%),radial-gradient(circle_at_78%_16%,rgba(207,233,223,0.12),transparent_28%),linear-gradient(135deg,rgba(27,20,17,0.78),rgba(74,56,50,0.48))] focus-within:after:opacity-100`}
+      >
       <div className="relative z-10 mx-auto max-w-[1800px] px-5 sm:px-8 lg:px-14">
         <div className="relative flex h-[8.25rem] items-center justify-center">
           <button onClick={onSearch} className={`absolute left-0 ${iconButton}`} aria-label="Search">
             <Search className="h-6 w-6 stroke-[1.6]" />
           </button>
 
-          <a href="#home" className="flex flex-col items-center text-center">
+          <a href="#home" onClick={(event) => handleNavClick(event, "#home")} className="flex flex-col items-center text-center">
             <img
               src="/logo.png"
               alt="PEARLfectly logo"
               className="mb-2 h-12 w-12 rounded-full border border-[#B89A5E]/40 bg-[#FFFDF7] object-cover p-1 shadow-md"
             />
-            <span className={`font-serif text-4xl leading-none tracking-[0.12em] ${navText}`}>
+            <span className={`font-serif text-[2.6rem] leading-none tracking-[0.1em] ${navText}`}>
               PEARL<span className="tracking-normal">fectly</span>
             </span>
-            <span className={`mt-1 text-[12px] font-semibold uppercase tracking-[0.38em] ${navText}`}>
+            <span className={`mt-1 text-[12px] font-semibold uppercase tracking-[0.28em] ${navText}`}>
               PEARLS
             </span>
           </a>
@@ -344,14 +493,11 @@ function Navbar({ darkMode, setDarkMode, onSearch, onCart, cartCount = 0 }) {
                 {cartCount}
               </span>
             </button>
-            <button onClick={() => setDarkMode(!darkMode)} className={iconButton} aria-label="Toggle theme">
-              {darkMode ? <Sun className="h-6 w-6 stroke-[1.6]" /> : <Moon className="h-6 w-6 stroke-[1.6]" />}
-            </button>
           </div>
 
           <button
             onClick={() => setOpen(true)}
-            className="absolute right-0 grid h-11 w-11 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#CFE9DF]/70 hover:text-[#4A3832] dark:text-[#4A3832] dark:hover:bg-white/10 sm:hidden"
+            className="absolute right-0 grid h-11 w-11 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#CFE9DF]/70 hover:text-[#B89A5E] sm:hidden"
             aria-label="Open menu"
           >
             <Menu className="h-6 w-6" />
@@ -371,7 +517,8 @@ function Navbar({ darkMode, setDarkMode, onSearch, onCart, cartCount = 0 }) {
               >
                 <a
                   href={link.href}
-                  className={`flex items-center gap-2 whitespace-nowrap text-[13px] font-semibold uppercase tracking-[0.28em] hover:text-[#4A3832] ${navText}`}
+                  onClick={(event) => handleNavClick(event, link.href)}
+                  className={`flex items-center gap-2 whitespace-nowrap text-sm font-semibold uppercase tracking-[0.22em] ${navText}`}
                 >
                   {link.label}
                   {link.hasDropdown && <ChevronDown className="h-4 w-4 stroke-[1.5]" />}
@@ -384,7 +531,7 @@ function Navbar({ darkMode, setDarkMode, onSearch, onCart, cartCount = 0 }) {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 12, scale: 0.98 }}
                       transition={{ duration: 0.22, ease: "easeOut" }}
-                      className="absolute left-1/2 top-11 z-[80] w-[960px] max-w-[calc(100vw-3rem)] -translate-x-1/2 overflow-hidden rounded-[2rem] border border-[#D8C7A3]/40 bg-[#FFF8EF]/95 px-12 py-10 shadow-2xl shadow-black/10 backdrop-blur-xl dark:border-white/10 dark:bg-[#1B1411]/95"
+                      className="absolute left-1/2 top-11 z-[80] w-[960px] max-w-[calc(100vw-3rem)] -translate-x-1/2 overflow-hidden rounded-[2rem] border border-[#D8C7A3]/40 bg-[#FFF8EF]/95 px-12 py-10 shadow-2xl shadow-black/10 backdrop-blur-xl"
                     >
                       <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-[#CFE9DF]/55 blur-3xl" />
                       <div className="pointer-events-none absolute -bottom-20 -left-16 h-40 w-40 rounded-full bg-[#F4C6D3]/45 blur-3xl" />
@@ -392,7 +539,7 @@ function Navbar({ darkMode, setDarkMode, onSearch, onCart, cartCount = 0 }) {
                       <div className="relative grid gap-10 md:grid-cols-[1fr_1fr_1fr_0.9fr]">
                         {shopMegaMenu.map((group) => (
                           <div key={group.title}>
-                            <h3 className="mb-5 whitespace-nowrap text-[12px] font-bold uppercase tracking-[0.24em] text-[#8A6A3F] dark:text-[#B89A5E]">
+                            <h3 className="mb-5 whitespace-nowrap text-[12px] font-bold uppercase tracking-[0.24em] text-[#8A6A3F]">
                               {group.title}
                             </h3>
 
@@ -401,7 +548,8 @@ function Navbar({ darkMode, setDarkMode, onSearch, onCart, cartCount = 0 }) {
                                 <a
                                   key={item}
                                   href="#shop"
-                                  className="block rounded-full px-3 py-2 text-[15px] font-medium capitalize text-[#4A3832]/80 transition duration-300 hover:bg-[#F3E7D6]/70 hover:text-[#4A3832] dark:text-[#FFF8EF]/75 dark:hover:bg-white/10"
+                                  onClick={(event) => handleNavClick(event, "#shop")}
+                                  className="block rounded-full px-3 py-2 text-[15px] font-medium capitalize text-[#4A3832]/80 transition duration-300 hover:bg-[#F3E7D6]/70 hover:text-[#B89A5E]"
                                 >
                                   {item}
                                 </a>
@@ -410,15 +558,19 @@ function Navbar({ darkMode, setDarkMode, onSearch, onCart, cartCount = 0 }) {
                           </div>
                         ))}
 
-                        <div className="rounded-[1.5rem] border border-[#B89A5E]/25 bg-[#FFFDF7]/80 p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.05]">
+                        <div className="rounded-[1.5rem] border border-[#B89A5E]/25 bg-[#FFFDF7]/80 p-5 shadow-sm">
                           <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#B89A5E]">
                             Gift-ready
                           </p>
-                          <p className="mt-3 font-serif text-2xl leading-tight text-[#1B1411] dark:text-[#FFF8EF]">
+                          <p className="mt-3 font-serif text-2xl leading-tight text-[#1B1411]">
                             Pearl boxes made for soft luxury gifting.
                           </p>
-                          <a href="#shop" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#8A6A3F] hover:text-[#4A3832] dark:text-[#B89A5E]">
-                            Shop new arrivals <ArrowRight className="h-4 w-4" />
+                          <a
+                            href="#shop"
+                            onClick={(event) => handleNavClick(event, "#shop")}
+                            className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#8A6A3F] hover:text-[#B89A5E]"
+                          >
+                            Shop gift sets <ArrowRight className="h-4 w-4" />
                           </a>
                         </div>
                       </div>
@@ -444,19 +596,19 @@ function Navbar({ darkMode, setDarkMode, onSearch, onCart, cartCount = 0 }) {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 220 }}
-              className="ml-auto h-full w-[86%] max-w-sm bg-[#FFF8EF] p-6 dark:bg-[#1B1411]"
+              className="ml-auto h-full w-[86%] max-w-sm bg-[#FFF8EF] p-6"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <img src="/logo.png" alt="PEARLfectly logo" className="h-12 w-12 rounded-full border border-[#B89A5E]/40 bg-[#FFFDF7] object-cover p-1" />
                   <div>
-                    <p className="font-serif text-2xl tracking-[0.12em] text-[#1B1411] dark:text-[#FFF8EF]">PEARLfectly</p>
-                    <p className="text-[10px] uppercase tracking-[0.34em] text-[#8A6A3F] dark:text-[#B89A5E]">PEARLS</p>
+                    <p className="font-serif text-2xl tracking-[0.12em] text-[#1B1411]">PEARLfectly</p>
+                    <p className="text-[10px] uppercase tracking-[0.34em] text-[#8A6A3F]">PEARLS</p>
                   </div>
                 </div>
 
-                <button onClick={() => setOpen(false)} className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/10" aria-label="Close menu">
-                  <X className="text-[#1B1411] dark:text-[#FFF8EF]" />
+                <button onClick={() => setOpen(false)} className="rounded-full p-2 hover:bg-black/5" aria-label="Close menu">
+                  <X className="text-[#1B1411]" />
                 </button>
               </div>
 
@@ -465,36 +617,34 @@ function Navbar({ darkMode, setDarkMode, onSearch, onCart, cartCount = 0 }) {
                   <a
                     key={link.label}
                     href={link.href}
-                    onClick={() => setOpen(false)}
-                    className="block border-b border-[#B89A5E]/20 pb-4 font-serif text-2xl text-[#1B1411] dark:text-[#FFF8EF]"
+                    onClick={(event) => handleNavClick(event, link.href)}
+                    className="block border-b border-[#B89A5E]/20 pb-4 font-serif text-2xl text-[#1B1411]"
                   >
                     {link.label}
                   </a>
                 ))}
               </div>
 
-              <div className="mt-8 grid grid-cols-4 gap-3">
-                <button onClick={onSearch} className="grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411] dark:text-[#FFF8EF]" aria-label="Search">
+              <div className="mt-8 grid grid-cols-3 gap-3">
+                <button onClick={onSearch} className="grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Search">
                   <Search className="h-5 w-5" />
                 </button>
-                <button className="grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411] dark:text-[#FFF8EF]" aria-label="Account">
+                <button className="grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Account">
                   <UserRound className="h-5 w-5" />
                 </button>
-                <button onClick={onCart} className="relative grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411] dark:text-[#FFF8EF]" aria-label="Open cart">
+                <button onClick={onCart} className="relative grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Open cart">
                   <ShoppingBag className="h-5 w-5" />
                   <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#B89A5E] px-1 text-[10px] font-semibold text-[#1B1411]">
                     {cartCount}
                   </span>
-                </button>
-                <button onClick={() => setDarkMode(!darkMode)} className="grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411] dark:text-[#FFF8EF]" aria-label="Toggle theme">
-                  {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                 </button>
               </div>
             </motion.aside>
           </motion.div>
         )}
       </AnimatePresence>
-    </header>
+      </header>
+    </>
   );
 }
 
@@ -525,7 +675,7 @@ function Hero() {
             <div className="min-w-0">
               <SectionLabel dark>Pearlfectly Pearls</SectionLabel>
 
-              <h1 className="max-w-[820px] font-serif text-5xl leading-[0.96] tracking-tight sm:text-6xl lg:text-[76px] xl:text-[84px]">
+              <h1 className="max-w-[820px] pb-2 font-serif text-5xl leading-[0.98] tracking-tight sm:text-6xl lg:text-[76px] xl:text-[84px]">
                 Pearls made for soft everyday elegance.
               </h1>
 
@@ -597,13 +747,15 @@ function TrustBar() {
   const items = [
     { icon: Gift, title: "Gift-ready packaging", copy: "Ivory boxes, soft ribbons, and polished presentation." },
     { icon: ShieldCheck, title: "Quality checked", copy: "Each piece is inspected for luster, surface, and finish." },
-    { icon: Truck, title: "Tracked delivery", copy: "Clear shipping flow for local and gift orders." },
-    { icon: CreditCard, title: "Secure checkout", copy: "A calmer buying experience from cart to payment." },
+    { icon: Truck, title: "Tracked delivery", copy: "Clear delivery updates for local and gift orders." },
+    { icon: CreditCard, title: "Secure checkout", copy: "A secure, polished checkout from cart to payment." },
   ];
 
   return (
-    <section className="bg-[#FFF8EF] px-6 py-12 dark:bg-[#161616] sm:px-8 lg:px-10">
-      <div className="mx-auto grid max-w-7xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <section className="relative overflow-hidden bg-[#FFF8EF] px-6 py-12 sm:px-8 lg:px-10">
+      <SoftBackgroundDecor />
+
+      <div className="relative z-10 mx-auto grid max-w-7xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {items.map((item, index) => {
           const Icon = item.icon;
           return (
@@ -611,13 +763,13 @@ function TrustBar() {
               key={item.title}
               {...fadeUp}
               transition={{ ...fadeUp.transition, delay: index * 0.05 }}
-              className="rounded-[1.75rem] border border-[#B89A5E]/20 bg-[#FFFDF7] p-5 shadow-lg shadow-black/5 dark:border-white/10 dark:bg-white/[0.04]"
+              className="rounded-[1.75rem] border border-[#B89A5E]/20 bg-[#FFFDF7]/82 p-5 shadow-lg shadow-black/5 backdrop-blur-md"
             >
-              <div className="mb-4 grid h-11 w-11 place-items-center rounded-full bg-[#CFE9DF]/70 text-[#8A6A3F] dark:bg-[#B89A5E]/15 dark:text-[#B89A5E]">
+              <div className="mb-4 grid h-11 w-11 place-items-center rounded-full bg-[#CFE9DF]/70 text-[#8A6A3F]">
                 <Icon className="h-5 w-5" />
               </div>
-              <h3 className="font-serif text-xl text-[#1B1411] dark:text-[#FFF8EF]">{item.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-[#1B1411]/65 dark:text-white/60">{item.copy}</p>
+              <h3 className="font-serif text-xl text-[#1B1411]">{item.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-[#1B1411]/65">{item.copy}</p>
             </motion.div>
           );
         })}
@@ -628,16 +780,18 @@ function TrustBar() {
 
 function FeaturedCollections() {
   return (
-    <section id="collections" className="bg-[#DCEFE8] px-6 py-24 dark:bg-[#1B1411] sm:px-8 lg:px-10">
-      <div className="mx-auto max-w-7xl">
+    <section id="collections" className="relative overflow-hidden bg-[#DCEFE8] px-6 py-28 sm:px-8 lg:px-10">
+      <MintBackgroundDecor />
+
+      <div className="relative z-10 mx-auto max-w-7xl">
         <motion.div {...fadeUp} className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <SectionLabel>Featured Collections</SectionLabel>
-            <h2 className="max-w-3xl font-serif text-4xl leading-tight text-[#1B1411] dark:text-[#FFF8EF] sm:text-6xl">
+            <h2 className="max-w-3xl font-serif text-4xl leading-tight text-[#1B1411] sm:text-6xl">
               Soft packaging, polished pearls, and gift-ready details.
             </h2>
           </div>
-          <p className="max-w-md text-sm leading-7 text-[#1B1411]/75 dark:text-white/65">
+          <p className="max-w-md text-sm leading-7 text-[#1B1411]/75">
             Inspired by mint jewelry trays, blush velvet boxes, creamy silk backdrops, and classic black typography.
           </p>
         </motion.div>
@@ -671,8 +825,8 @@ function ProductCard({ product, onQuickView, addToCart }) {
   const [liked, setLiked] = useState(false);
 
   return (
-    <motion.article {...fadeUp} className="group overflow-hidden rounded-[2rem] border border-[#B89A5E]/20 bg-[#FFF8EF] shadow-xl shadow-black/5 transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/10 dark:border-white/10 dark:bg-white/[0.04]">
-      <div className="relative aspect-[4/5] overflow-hidden bg-[#F7E8DD]">
+    <motion.article {...fadeUp} className="group overflow-hidden rounded-[2rem] border border-[#B89A5E]/20 bg-[#FFF8EF]/88 shadow-xl shadow-black/5 backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/10">
+      <div className="relative aspect-[4/3] overflow-hidden bg-[#F7E8DD]">
         <img src={product.image} alt={product.name} className="h-full w-full object-cover transition duration-1000 group-hover:scale-110" />
         <div className="absolute left-4 top-4 rounded-full bg-[#FFF8EF]/90 px-4 py-2 text-xs font-semibold text-[#1B1411] backdrop-blur">
           {product.tag}
@@ -699,12 +853,12 @@ function ProductCard({ product, onQuickView, addToCart }) {
             <Star key={i} className={`h-4 w-4 ${i < product.rating ? "fill-current" : "opacity-25"}`} />
           ))}
         </div>
-        <p className="text-xs uppercase tracking-[0.25em] text-[#8A6A3F] dark:text-[#B89A5E]">{product.category}</p>
-        <h3 className="mt-2 font-serif text-2xl text-[#1B1411] dark:text-[#FFF8EF]">{product.name}</h3>
-        <p className="mt-2 text-sm text-[#1B1411]/70 dark:text-white/60">{product.pearl} · {product.metal}</p>
+        <p className="text-xs uppercase tracking-[0.25em] text-[#8A6A3F]">{product.category}</p>
+        <h3 className="mt-2 font-serif text-2xl text-[#1B1411]">{product.name}</h3>
+        <p className="mt-2 text-sm text-[#1B1411]/70">{product.pearl} · {product.metal}</p>
         <div className="mt-5 flex items-center justify-between gap-4">
-          <p className="font-serif text-2xl text-[#1B1411] dark:text-[#FFF8EF]">{formatPrice(product.price)}</p>
-          <button onClick={() => addToCart(product)} className="rounded-full px-4 py-2 text-sm font-semibold text-[#8A6A3F] transition hover:bg-[#F3E7D6]/70 hover:text-[#1B1411] dark:text-[#B89A5E] dark:hover:bg-white/10 dark:hover:text-white">
+          <p className="font-serif text-2xl text-[#1B1411]">{formatPrice(product.price)}</p>
+          <button onClick={() => addToCart(product)} className="rounded-full px-4 py-2 text-sm font-semibold text-[#8A6A3F] transition hover:bg-[#F3E7D6]/70 hover:text-[#1B1411]">
             Add to Cart
           </button>
         </div>
@@ -715,35 +869,37 @@ function ProductCard({ product, onQuickView, addToCart }) {
 
 function ProductShowcase({ onQuickView, addToCart }) {
   const [activeFilter, setActiveFilter] = useState("All");
-  const filters = ["All", "Earrings", "Necklaces", "Bracelets", "Rings"];
+  const filters = ["All", "Earrings", "Gift Sets", "Size Guide"];
   const visible =
     activeFilter === "All"
       ? products
       : products.filter((p) => p.category === activeFilter);
 
   return (
-    <section id="shop" className="bg-[#FFF8EF] px-6 py-24 dark:bg-[#161616] sm:px-8 lg:px-10">
-      <div className="mx-auto max-w-7xl">
+    <section id="shop" className="relative overflow-hidden bg-[#FFF8EF] px-6 py-24 sm:px-8 lg:px-10">
+      <SoftBackgroundDecor />
+
+      <div className="relative z-10 mx-auto max-w-7xl">
         <motion.div {...fadeUp} className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <SectionLabel>Shop the Edit</SectionLabel>
-            <h2 className="font-serif text-4xl text-[#1B1411] dark:text-[#FFF8EF] sm:text-6xl">
+            <h2 className="font-serif text-4xl text-[#1B1411] sm:text-6xl">
               Best sellers & new arrivals
             </h2>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-[#1B1411]/70 dark:text-white/60">
-              Give visitors something to buy immediately: clear product cards, visible prices, quick view, and add-to-cart actions.
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-[#1B1411]/70">
+              Shop polished pearl studs and gift-ready sets with clear prices, quick view, and easy add-to-cart actions.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2 rounded-full border border-[#B89A5E]/20 bg-[#F7E8DD] p-2 dark:border-white/10 dark:bg-white/5">
-            <span className="grid h-10 w-10 place-items-center rounded-full text-[#8A6A3F] dark:text-[#B89A5E]"><SlidersHorizontal className="h-4 w-4" /></span>
+          <div className="flex flex-wrap gap-2 rounded-full border border-[#B89A5E]/20 bg-[#F7E8DD]/82 p-2 backdrop-blur-md">
+            <span className="grid h-10 w-10 place-items-center rounded-full text-[#8A6A3F]"><SlidersHorizontal className="h-4 w-4" /></span>
             {filters.map((filter) => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
                 className={`rounded-full px-4 py-2 text-sm transition ${
                   activeFilter === filter
-                    ? "bg-[#1B1411] text-[#FFF8EF] dark:bg-[#B89A5E] dark:text-[#1B1411]"
-                    : "text-[#1B1411] hover:bg-white dark:text-white/70 dark:hover:bg-white/10"
+                    ? "bg-[#1B1411] text-[#FFF8EF]"
+                    : "text-[#1B1411] hover:bg-white"
                 }`}
               >
                 {filter}
@@ -770,9 +926,10 @@ function Craftsmanship() {
   ];
 
   return (
-    <section id="craftsmanship" className="relative overflow-hidden bg-[#1B1411] px-6 py-24 text-[#FFF8EF] sm:px-8 lg:px-10">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(212,180,131,0.2),transparent_30%),radial-gradient(circle_at_90%_80%,rgba(255,253,249,0.08),transparent_28%)]" />
-      <div className="relative mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+    <section id="craftsmanship" className="relative overflow-hidden bg-[#1B1411] px-6 py-28 text-[#FFF8EF] sm:px-8 lg:px-10">
+      <DarkBackgroundDecor />
+
+      <div className="relative z-10 mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
         <motion.div {...fadeUp}>
           <SectionLabel dark>Craftsmanship</SectionLabel>
           <h2 className="font-serif text-4xl leading-tight sm:text-6xl">A modern atelier approach to pearl jewelry.</h2>
@@ -792,7 +949,7 @@ function Craftsmanship() {
                 key={value.title}
                 {...fadeUp}
                 transition={{ ...fadeUp.transition, delay: index * 0.08 }}
-                className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-6 backdrop-blur-xl transition hover:-translate-y-1 hover:bg-white/[0.09]"
+                className="rounded-[2rem] border border-white/10 bg-white/[0.07] p-6 backdrop-blur-xl transition hover:-translate-y-1 hover:bg-white/[0.11]"
               >
                 <div className="mb-6 grid h-12 w-12 place-items-center rounded-full bg-[#B89A5E]/15 text-[#B89A5E]">
                   <Icon className="h-6 w-6" />
@@ -815,17 +972,19 @@ function ProductDetailLayout({ addToCart }) {
   const variants = ["Gold-tone Backing", "Silver-tone Backing", "Rose-gold Tone"];
 
   return (
-    <section className="bg-[#F7E8DD] px-6 py-24 dark:bg-[#1B1411] sm:px-8 lg:px-10">
-      <div className="mx-auto max-w-7xl">
+    <section className="relative overflow-hidden bg-[#F7E8DD] px-6 py-24 sm:px-8 lg:px-10">
+      <SoftBackgroundDecor />
+
+      <div className="relative z-10 mx-auto max-w-7xl">
         <motion.div {...fadeUp} className="mb-12 text-center">
           <div className="mx-auto flex justify-center"><SectionLabel>Product Detail Preview</SectionLabel></div>
-          <h2 className="font-serif text-4xl text-[#1B1411] dark:text-[#FFF8EF] sm:text-6xl">Clearer product buying flow</h2>
-          <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-[#1B1411]/70 dark:text-white/60">
-            A stronger product section builds trust with size options, reviews, secure checkout cues, and a working add-to-cart action.
+          <h2 className="font-serif text-4xl text-[#1B1411] sm:text-6xl">A clearer product buying flow</h2>
+          <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-[#1B1411]/70">
+            A stronger buying flow builds trust with finish options, reviews, secure checkout cues, and a working add-to-cart action.
           </p>
         </motion.div>
 
-        <div className="grid gap-8 rounded-[2.5rem] border border-[#B89A5E]/20 bg-[#FFF8EF] p-4 shadow-2xl shadow-black/5 dark:border-white/10 dark:bg-white/[0.04] lg:grid-cols-2 lg:p-8">
+        <div className="grid gap-8 rounded-[2.5rem] border border-[#B89A5E]/20 bg-[#FFF8EF]/88 p-4 shadow-2xl shadow-black/5 backdrop-blur-md lg:grid-cols-2 lg:p-8">
           <div className="grid gap-4 sm:grid-cols-[0.22fr_1fr]">
             <div className="hidden gap-4 sm:grid">
               {[product.image, products[1].image, products[2].image].map((img, index) => (
@@ -843,22 +1002,22 @@ function ProductDetailLayout({ addToCart }) {
           </div>
 
           <div className="flex flex-col justify-center p-2 lg:p-8">
-            <p className="text-xs uppercase tracking-[0.32em] text-[#8A6A3F] dark:text-[#B89A5E]">Pearl Stud Earrings</p>
-            <h3 className="mt-3 font-serif text-4xl text-[#1B1411] dark:text-[#FFF8EF] sm:text-5xl">{product.name}</h3>
+            <p className="text-xs uppercase tracking-[0.32em] text-[#8A6A3F]">Pearl Stud Earrings</p>
+            <h3 className="mt-3 font-serif text-4xl text-[#1B1411] sm:text-5xl">{product.name}</h3>
             <div className="mt-4 flex items-center gap-3">
               <div className="flex text-[#B89A5E]">
                 {Array.from({ length: 5 }).map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}
               </div>
-              <span className="text-sm text-[#1B1411]/65 dark:text-white/60">48 customer reviews</span>
+              <span className="text-sm text-[#1B1411]/65">48 customer reviews</span>
             </div>
-            <p className="mt-6 font-serif text-3xl text-[#1B1411] dark:text-[#FFF8EF]">{formatPrice(product.price)}</p>
-            <p className="mt-5 max-w-xl text-sm leading-7 text-[#1B1411]/75 dark:text-white/65">
+            <p className="mt-6 font-serif text-3xl text-[#1B1411]">{formatPrice(product.price)}</p>
+            <p className="mt-5 max-w-xl text-sm leading-7 text-[#1B1411]/75">
               A luminous pearl stud set inspired by soft blush boxes, mint packaging, and warm gold details. Designed for clean product display, gifting, and everyday quiet luxury.
             </p>
 
             <div className="mt-8 space-y-5">
               <div>
-                <p className="mb-3 text-sm font-medium text-[#1B1411] dark:text-[#FFF8EF]">Pearl / Backing Finish</p>
+                <p className="mb-3 text-sm font-medium text-[#1B1411]">Pearl / Backing Finish</p>
                 <div className="flex flex-wrap gap-2">
                   {variants.map((item) => (
                     <button
@@ -866,8 +1025,8 @@ function ProductDetailLayout({ addToCart }) {
                       onClick={() => setVariant(item)}
                       className={`rounded-full border px-4 py-2 text-sm transition ${
                         variant === item
-                          ? "border-[#1B1411] bg-[#1B1411] text-[#FFF8EF] dark:border-[#B89A5E] dark:bg-[#B89A5E] dark:text-[#1B1411]"
-                          : "border-[#B89A5E]/30 text-[#1B1411] hover:border-[#B89A5E] hover:bg-[#F3E7D6]/60 dark:text-white/70 dark:hover:bg-white/10"
+                          ? "border-[#1B1411] bg-[#1B1411] text-[#FFF8EF]"
+                          : "border-[#B89A5E]/30 text-[#1B1411] hover:border-[#B89A5E] hover:bg-[#F3E7D6]/60"
                       }`}
                     >
                       {item}
@@ -879,13 +1038,19 @@ function ProductDetailLayout({ addToCart }) {
               <div className="flex flex-wrap items-center gap-4">
                 <div className="flex items-center rounded-full border border-[#B89A5E]/30">
                   <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-3"><Minus className="h-4 w-4" /></button>
-                  <span className="min-w-10 text-center text-sm text-[#1B1411] dark:text-[#FFF8EF]">{quantity}</span>
+                  <span className="min-w-10 text-center text-sm text-[#1B1411]">{quantity}</span>
                   <button onClick={() => setQuantity(quantity + 1)} className="p-3"><Plus className="h-4 w-4" /></button>
                 </div>
                 <LuxuryButton onClick={() => Array.from({ length: quantity }).forEach(() => addToCart(product))} className="flex-1 sm:flex-none">
                   Add to Cart
                 </LuxuryButton>
-                <button className="grid h-12 w-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411] hover:bg-[#CFE9DF]/70 dark:text-[#FFF8EF]">
+                <button
+                  onClick={() => Array.from({ length: quantity }).forEach(() => addToCart(product))}
+                  className="rounded-full border border-[#B89A5E]/40 px-6 py-3 text-sm font-semibold text-[#1B1411] transition hover:bg-[#CFE9DF]/60"
+                >
+                  Buy Now
+                </button>
+                <button className="grid h-12 w-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411] hover:bg-[#CFE9DF]/70">
                   <Heart className="h-5 w-5" />
                 </button>
               </div>
@@ -897,10 +1062,16 @@ function ProductDetailLayout({ addToCart }) {
                 [Truck, "Tracked shipping"],
                 [CreditCard, "Secure checkout"],
               ].map(([Icon, label]) => (
-                <div key={label} className="flex items-center gap-2 rounded-2xl bg-[#F7E8DD] p-3 text-xs text-[#1B1411] dark:bg-white/5 dark:text-white/65">
+                <div key={label} className="flex items-center gap-2 rounded-2xl bg-[#F7E8DD] p-3 text-xs text-[#1B1411]">
                   <Icon className="h-4 w-4 text-[#B89A5E]" /> {label}
                 </div>
               ))}
+            </div>
+
+            <div className="mt-5 grid gap-3 text-xs leading-6 text-[#1B1411]/70 sm:grid-cols-3">
+              <p><span className="font-semibold text-[#1B1411]">Stock:</span> Available</p>
+              <p><span className="font-semibold text-[#1B1411]">Delivery:</span> 2–5 business days</p>
+              <p><span className="font-semibold text-[#1B1411]">Care:</span> Soft cloth cleaning</p>
             </div>
           </div>
         </div>
@@ -918,11 +1089,12 @@ function LuxuryExperience() {
   ];
 
   return (
-    <section className="bg-[#FFF8EF] px-6 py-24 dark:bg-[#161616] sm:px-8 lg:px-10">
-      <div className="mx-auto max-w-7xl">
+    <section className="relative overflow-hidden bg-[#FFF8EF] px-6 py-24 sm:px-8 lg:px-10">
+      <SoftBackgroundDecor />
+      <div className="relative z-10 mx-auto max-w-7xl">
         <motion.div {...fadeUp} className="mb-12 text-center">
           <div className="mx-auto flex justify-center"><SectionLabel>Luxury Experience</SectionLabel></div>
-          <h2 className="font-serif text-4xl text-[#1B1411] dark:text-[#FFF8EF] sm:text-6xl">A soft, gift-ready experience.</h2>
+          <h2 className="font-serif text-4xl text-[#1B1411] sm:text-6xl">A soft, gift-ready luxury experience.</h2>
         </motion.div>
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {perks.map((perk, index) => {
@@ -932,13 +1104,13 @@ function LuxuryExperience() {
                 key={perk.title}
                 {...fadeUp}
                 transition={{ ...fadeUp.transition, delay: index * 0.08 }}
-                className="rounded-[2rem] border border-[#B89A5E]/20 bg-gradient-to-br from-[#FFF8EF] to-[#F7E8DD] p-7 shadow-xl shadow-black/5 transition hover:-translate-y-1 dark:border-white/10 dark:from-white/[0.07] dark:to-white/[0.03]"
+                className="rounded-[2rem] border border-[#B89A5E]/20 bg-gradient-to-br from-[#FFF8EF]/90 to-[#F7E8DD]/82 p-7 shadow-xl shadow-black/5 backdrop-blur-md transition hover:-translate-y-1"
               >
-                <div className="mb-7 grid h-14 w-14 place-items-center rounded-full bg-[#B89A5E]/20 text-[#8A6A3F] dark:text-[#B89A5E]">
+                <div className="mb-7 grid h-14 w-14 place-items-center rounded-full bg-[#B89A5E]/20 text-[#8A6A3F]">
                   <Icon className="h-6 w-6" />
                 </div>
-                <h3 className="font-serif text-2xl text-[#1B1411] dark:text-[#FFF8EF]">{perk.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-[#1B1411]/70 dark:text-white/60">{perk.copy}</p>
+                <h3 className="font-serif text-2xl text-[#1B1411]">{perk.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-[#1B1411]/70">{perk.copy}</p>
               </motion.div>
             );
           })}
@@ -953,11 +1125,13 @@ function Testimonials() {
   const current = testimonials[active];
 
   return (
-    <section id="testimonials" className="bg-[#F7E8DD] px-6 py-24 dark:bg-[#1B1411] sm:px-8 lg:px-10">
-      <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+    <section id="testimonials" className="relative overflow-hidden bg-[#F7E8DD] px-6 py-24 sm:px-8 lg:px-10">
+      <SoftBackgroundDecor />
+
+      <div className="relative z-10 mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
         <motion.div {...fadeUp}>
           <SectionLabel>Testimonials</SectionLabel>
-          <h2 className="font-serif text-4xl leading-tight text-[#1B1411] dark:text-[#FFF8EF] sm:text-6xl">Loved by brides, collectors, and thoughtful gift-givers.</h2>
+          <h2 className="font-serif text-4xl leading-tight text-[#1B1411] sm:text-6xl">Loved by brides, collectors, and thoughtful gift-givers.</h2>
           <div className="mt-8 flex gap-3">
             {testimonials.map((item, index) => (
               <button
@@ -978,15 +1152,15 @@ function Testimonials() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.5 }}
-              className="relative rounded-[2.5rem] border border-[#B89A5E]/20 bg-[#FFF8EF] p-8 shadow-2xl shadow-black/5 dark:border-white/10 dark:bg-white/[0.04] sm:p-10"
+              className="relative rounded-[2.5rem] border border-[#B89A5E]/20 bg-[#FFF8EF]/88 p-8 shadow-2xl shadow-black/5 backdrop-blur-md sm:p-10"
             >
               <Quote className="mb-8 h-10 w-10 text-[#B89A5E]" />
-              <p className="font-serif text-3xl leading-snug text-[#1B1411] dark:text-[#FFF8EF] sm:text-4xl">“{current.review}”</p>
+              <p className="font-serif text-3xl leading-snug text-[#1B1411] sm:text-4xl">“{current.review}”</p>
               <div className="mt-8 flex items-center gap-4">
                 <img src={current.image} alt={current.name} className="h-14 w-14 rounded-full object-cover" />
                 <div>
-                  <p className="font-medium text-[#1B1411] dark:text-[#FFF8EF]">{current.name}</p>
-                  <p className="text-sm text-[#1B1411]/65 dark:text-white/60">{current.role}</p>
+                  <p className="font-medium text-[#1B1411]">{current.name}</p>
+                  <p className="text-sm text-[#1B1411]/65">{current.role}</p>
                 </div>
                 <div className="ml-auto hidden text-[#B89A5E] sm:flex">
                   {Array.from({ length: 5 }).map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}
@@ -1002,14 +1176,16 @@ function Testimonials() {
 
 function Gallery() {
   return (
-    <section className="bg-[#1B1411] px-6 py-24 text-[#FFF8EF] sm:px-8 lg:px-10">
-      <div className="mx-auto max-w-7xl">
+    <section className="relative overflow-hidden bg-[#1B1411] px-6 py-32 text-[#FFF8EF] sm:px-8 lg:px-10">
+      <DarkBackgroundDecor />
+
+      <div className="relative z-10 mx-auto max-w-7xl">
         <motion.div {...fadeUp} className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <SectionLabel dark>Social Gallery</SectionLabel>
-            <h2 className="font-serif text-4xl sm:text-6xl">Mint, blush, pearl, and gold.</h2>
+            <h2 className="pb-2 font-serif text-4xl leading-[0.98] sm:text-6xl">Mint, blush, pearl, and gold.</h2>
           </div>
-          <button className="inline-flex items-center gap-2 text-sm text-[#B89A5E]">  </button>
+          <button className="inline-flex items-center gap-2 text-sm text-[#B89A5E]">View Gallery <ArrowRight className="h-4 w-4" /></button>
         </motion.div>
         <div className="grid auto-rows-[220px] gap-4 md:grid-cols-4">
           {gallery.map((img, index) => (
@@ -1019,7 +1195,7 @@ function Gallery() {
               transition={{ ...fadeUp.transition, delay: index * 0.05 }}
               className={`group overflow-hidden rounded-[2rem] ${index === 0 || index === 3 ? "md:row-span-2" : ""} ${index === 1 ? "md:col-span-2" : ""}`}
             >
-              <img src={img} alt="Luxury pearl lifestyle gallery" className="h-full w-full object-cover opacity-90 transition duration-700 group-hover:scale-110 group-hover:opacity-100" />
+              <img src={img} alt="PEARLfectly pearl product and packaging gallery" className="h-full w-full object-cover opacity-90 transition duration-700 group-hover:scale-110 group-hover:opacity-100" />
             </motion.div>
           ))}
         </div>
@@ -1030,8 +1206,10 @@ function Gallery() {
 
 function Newsletter() {
   return (
-    <section className="bg-[#F7E8DD] px-6 py-24 dark:bg-[#1B1411] sm:px-8 lg:px-10">
-      <motion.div {...fadeUp} className="mx-auto max-w-5xl overflow-hidden rounded-[3rem] border border-[#B89A5E]/25 bg-[#1B1411] p-8 text-center text-[#FFF8EF] shadow-2xl shadow-black/10 sm:p-14">
+    <section className="relative overflow-hidden bg-[#F7E8DD] px-6 py-24 sm:px-8 lg:px-10">
+      <SoftBackgroundDecor />
+
+      <motion.div {...fadeUp} className="relative z-10 mx-auto max-w-5xl overflow-hidden rounded-[3rem] border border-[#B89A5E]/25 bg-[#1B1411]/90 p-8 text-center text-[#FFF8EF] shadow-2xl shadow-black/10 backdrop-blur-xl sm:p-14">
         <div className="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-full bg-[#B89A5E]/20 text-[#B89A5E]">
           <Mail className="h-7 w-7" />
         </div>
@@ -1053,24 +1231,26 @@ function FAQ() {
   const [open, setOpen] = useState(0);
 
   return (
-    <section id="faq" className="bg-[#FFF8EF] px-6 py-24 dark:bg-[#161616] sm:px-8 lg:px-10">
-      <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+    <section id="faq" className="relative overflow-hidden bg-[#FFF8EF] px-6 py-24 sm:px-8 lg:px-10">
+      <SoftBackgroundDecor />
+
+      <div className="relative z-10 mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.8fr_1.2fr]">
         <motion.div {...fadeUp}>
           <SectionLabel>FAQ</SectionLabel>
-          <h2 className="font-serif text-4xl text-[#1B1411] dark:text-[#FFF8EF] sm:text-6xl">Questions before the sparkle?</h2>
-          <p className="mt-5 text-sm leading-7 text-[#1B1411]/70 dark:text-white/60">A premium buying experience should feel clear, calm, and secure from discovery to delivery.</p>
+          <h2 className="font-serif text-4xl text-[#1B1411] sm:text-6xl">Questions before the sparkle?</h2>
+          <p className="mt-5 text-sm leading-7 text-[#1B1411]/70">A premium buying experience should feel clear, calm, and secure from discovery to delivery.</p>
         </motion.div>
         <div className="space-y-4">
           {faqs.map((item, index) => (
-            <motion.div key={item.q} {...fadeUp} className="rounded-[1.5rem] border border-[#B89A5E]/20 bg-[#F7E8DD] dark:border-white/10 dark:bg-white/[0.04]">
+            <motion.div key={item.q} {...fadeUp} className="rounded-[1.5rem] border border-[#B89A5E]/20 bg-[#F7E8DD]/82 backdrop-blur-md">
               <button onClick={() => setOpen(open === index ? -1 : index)} className="flex w-full items-center justify-between gap-4 p-6 text-left">
-                <span className="font-serif text-xl text-[#1B1411] dark:text-[#FFF8EF]">{item.q}</span>
+                <span className="font-serif text-xl text-[#1B1411]">{item.q}</span>
                 <ChevronDown className={`h-5 w-5 text-[#B89A5E] transition ${open === index ? "rotate-180" : ""}`} />
               </button>
               <AnimatePresence>
                 {open === index && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                    <p className="px-6 pb-6 text-sm leading-7 text-[#1B1411]/70 dark:text-white/60">{item.a}</p>
+                    <p className="px-6 pb-6 text-sm leading-7 text-[#1B1411]/70">{item.a}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -1084,8 +1264,10 @@ function FAQ() {
 
 function Footer() {
   return (
-    <footer id="contact" className="bg-[#1B1411] px-6 py-16 text-[#FFF8EF] sm:px-8 lg:px-10">
-      <div className="mx-auto max-w-7xl">
+    <footer id="contact" className="relative overflow-hidden bg-[#1B1411] px-6 py-16 text-[#FFF8EF] sm:px-8 lg:px-10">
+      <DarkBackgroundDecor />
+
+      <div className="relative z-10 mx-auto max-w-7xl">
         <div className="grid gap-10 border-b border-white/10 pb-12 lg:grid-cols-[1.4fr_0.8fr_0.8fr_0.8fr]">
           <div>
             <div className="flex items-center gap-3">
@@ -1101,7 +1283,7 @@ function Footer() {
             <div key={title}>
               <p className="font-serif text-xl text-[#B89A5E]">{title}</p>
               <div className="mt-5 space-y-3">
-                {items.map((item) => <a key={item} href="#" className="block text-sm text-white/60 transition hover:text-[#4A3832]">{item}</a>)}
+                {items.map((item) => <a key={item} href="#" className="block text-sm text-white/60 transition hover:text-[#B89A5E]">{item}</a>)}
               </div>
             </div>
           ))}
@@ -1115,27 +1297,266 @@ function Footer() {
   );
 }
 
-function SearchOverlay({ open, onClose }) {
+function SearchOverlay({ open, onClose, onQuickView, onAddToCart }) {
+  const [query, setQuery] = useState("");
+  const [showAddedToast, setShowAddedToast] = useState(false);
+  const toastTimerRef = useRef(null);
+  const [addedProductId, setAddedProductId] = useState(null);
+  const [cartNotice, setCartNotice] = useState(false);
+  const addedTimeoutRef = useRef(null);
+  const noticeTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) {
+      setQuery("");
+      setAddedProductId(null);
+      setCartNotice(false);
+
+      window.clearTimeout(addedTimeoutRef.current);
+      window.clearTimeout(noticeTimeoutRef.current);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, onClose]);
+
+  useEffect(() => {
+    return () => {
+      window.clearTimeout(addedTimeoutRef.current);
+      window.clearTimeout(noticeTimeoutRef.current);
+    };
+  }, []);
+
+  const normalizedQuery = query.trim().toLowerCase();
+
+  const searchResults = normalizedQuery
+    ? products.filter((product) => {
+        const searchableText = [
+          product.name,
+          product.category,
+          product.tag,
+          product.metal,
+          product.pearl,
+          String(product.price),
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return searchableText.includes(normalizedQuery);
+      })
+    : products.slice(0, 4);
+
+  const searchSuggestions = ["Earrings", "Gift Sets", "Pink", "Ivory", "Size Guide"];
+
+  const handleQuickView = (product) => {
+    onQuickView?.(product);
+    onClose();
+  };
+
+  const handleAddToCart = (product) => {
+    onAddToCart?.(product);
+    setAddedProductId(product.id);
+    setCartNotice(true);
+
+    window.clearTimeout(addedTimeoutRef.current);
+    window.clearTimeout(noticeTimeoutRef.current);
+
+    addedTimeoutRef.current = window.setTimeout(() => {
+      setAddedProductId(null);
+    }, 800);
+
+    noticeTimeoutRef.current = window.setTimeout(() => {
+      setCartNotice(false);
+    }, 1200);
+  };
+
   return (
     <AnimatePresence>
       {open && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[70] bg-[#1B1411]/80 p-4 backdrop-blur-md">
-          <motion.div initial={{ y: -30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -30, opacity: 0 }} className="mx-auto mt-24 max-w-3xl rounded-[2rem] bg-[#FFF8EF] p-6 shadow-2xl dark:bg-[#161616]">
-            <div className="flex items-center gap-3 border-b border-[#B89A5E]/20 pb-4">
-              <Search className="h-5 w-5 text-[#B89A5E]" />
-              <input autoFocus placeholder="Search pearls, bridal, Akoya, earrings..." className="flex-1 bg-transparent text-lg text-[#1B1411] outline-none placeholder:text-[#1B1411]/40 dark:text-[#FFF8EF]" />
-              <button onClick={onClose} className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/10"><X className="h-5 w-5 text-[#1B1411] dark:text-[#FFF8EF]" /></button>
-            </div>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {products.slice(0, 2).map((product) => (
-                <div key={product.id} className="flex gap-4 rounded-2xl bg-[#F7E8DD] p-3 dark:bg-white/5">
-                  <img src={product.image} alt={product.name} className="h-20 w-20 rounded-xl object-cover" />
-                  <div>
-                    <p className="font-serif text-lg text-[#1B1411] dark:text-[#FFF8EF]">{product.name}</p>
-                    <p className="mt-1 text-sm text-[#1B1411]/60 dark:text-white/60">{formatPrice(product.price)}</p>
-                  </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="fixed inset-0 z-[70] bg-[#1B1411]/80 p-4 backdrop-blur-md"
+        >
+          <motion.div
+            initial={{ y: -30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -30, opacity: 0 }}
+            onClick={(event) => event.stopPropagation()}
+            className="relative mx-auto mt-24 max-h-[80vh] max-w-4xl overflow-hidden rounded-[2rem] bg-[#FFF8EF] shadow-2xl"
+          >
+            <form
+              onSubmit={(event) => event.preventDefault()}
+              className="flex items-center gap-3 border-b border-[#B89A5E]/20 p-6"
+            >
+              <Search className="h-5 w-5 shrink-0 text-[#B89A5E]" />
+              <input
+                autoFocus
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search pearls, earrings, gift sets, pink, ivory..."
+                className="flex-1 bg-transparent text-lg text-[#1B1411] outline-none placeholder:text-[#1B1411]/40"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#8A6A3F] transition hover:bg-[#F7E8DD]"
+                >
+                  Clear
+                </button>
+              )}
+              <button type="button" onClick={onClose} className="rounded-full p-2 hover:bg-black/5" aria-label="Close search">
+                <X className="h-5 w-5 text-[#1B1411]" />
+              </button>
+            </form>
+
+            <AnimatePresence>
+              {cartNotice && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.94 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.94 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="pointer-events-none absolute right-16 top-[6.5rem] z-12 rounded-full border border-[#B89A5E]/30 bg-[#FFFDF7]/95 px-6 py-3 text-sm font-semibold text-[#4A3832] shadow-xl shadow-black/10 backdrop-blur"
+                >
+                  Added to cart
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="max-h-[calc(80vh-96px)] overflow-y-auto p-6">
+              <div className="mb-5 flex flex-wrap gap-2">
+                {searchSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    onClick={() => setQuery(suggestion)}
+                    className="rounded-full border border-[#B89A5E]/25 bg-[#F7E8DD]/70 px-4 py-2 text-sm text-[#4A3832] transition hover:border-[#B89A5E] hover:bg-[#CFE9DF]/70"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#8A6A3F]">
+                  {normalizedQuery ? `Search results for “${query.trim()}”` : "Popular searches"}
+                </p>
+                <p className="text-sm text-[#1B1411]/50">
+                  {searchResults.length} {searchResults.length === 1 ? "item" : "items"}
+                </p>
+              </div>
+
+              {searchResults.length > 0 ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {searchResults.map((product) => {
+                    const isAdded = addedProductId === product.id;
+
+                    return (
+                      <motion.div
+                        key={product.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{
+                          opacity: 1,
+                          y: 0,
+                          scale: isAdded ? 1.02 : 1,
+                          boxShadow: isAdded
+                            ? "0 18px 45px rgba(184, 154, 94, 0.18)"
+                            : "0 0 0 rgba(184, 154, 94, 0)",
+                        }}
+                        transition={{ duration: 0.24, ease: "easeOut" }}
+                        className={`group overflow-hidden rounded-2xl border p-3 transition hover:border-[#B89A5E]/45 hover:bg-[#FFFDF7] ${
+                          isAdded
+                            ? "border-[#B89A5E]/60 bg-[#FFFDF7]"
+                            : "border-[#B89A5E]/20 bg-[#F7E8DD]"
+                        }`}
+                      >
+                        <div className="flex gap-4">
+                          <div className="relative shrink-0">
+                            <img src={product.image} alt={product.name} className="h-24 w-24 rounded-xl object-cover" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#8A6A3F]">
+                                {product.category}
+                              </p>
+                              <p className="mt-1 font-serif text-xl leading-tight text-[#1B1411]">
+                                {product.name}
+                              </p>
+                            </div>
+                            <p className="shrink-0 font-serif text-lg text-[#1B1411]">{formatPrice(product.price)}</p>
+                          </div>
+
+                          <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#1B1411]/60">
+                            {product.pearl} · {product.metal}
+                          </p>
+
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleQuickView(product)}
+                              className="rounded-full bg-[#1B1411] px-4 py-2 text-sm font-medium text-[#FFF8EF] transition hover:bg-[#B89A5E] hover:text-[#1B1411]"
+                            >
+                              Quick View
+                            </button>
+                            <motion.button
+                              type="button"
+                              whileTap={{ scale: 0.94 }}
+                              animate={{ scale: isAdded ? 1.04 : 1 }}
+                              transition={{ duration: 0.18, ease: "easeOut" }}
+                              onClick={() => handleAddToCart(product)}
+                              className={`overflow-hidden rounded-full border px-4 py-2 text-sm font-medium transition ${
+                                isAdded
+                                  ? "border-[#B89A5E] bg-[#B89A5E] text-[#1B1411]"
+                                  : "border-[#B89A5E]/40 text-[#1B1411] hover:bg-[#CFE9DF]/70"
+                              }`}
+                            >
+                              <AnimatePresence mode="wait" initial={false}>
+                                <motion.span
+                                  key={isAdded ? "added" : "add"}
+                                  initial={{ opacity: 0, y: 8 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -8 }}
+                                  transition={{ duration: 0.16 }}
+                                  className="block"
+                                >
+                                  {isAdded ? "Added" : "Add to Cart"}
+                                </motion.span>
+                              </AnimatePresence>
+                            </motion.button>
+                          </div>
+                        </div>
+                      </div>
+                      </motion.div>
+                    );
+                  })}
                 </div>
-              ))}
+              ) : (
+                <div className="rounded-[2rem] border border-[#B89A5E]/20 bg-[#F7E8DD] p-8 text-center">
+                  <Search className="mx-auto mb-4 h-8 w-8 text-[#B89A5E]" />
+                  <p className="font-serif text-2xl text-[#1B1411]">No products found</p>
+                  <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#1B1411]/60">
+                    Try searching for earrings, gift sets, pink, ivory, pearl studs, or size guide.
+                  </p>
+                </div>
+              )}
             </div>
           </motion.div>
         </motion.div>
@@ -1144,25 +1565,25 @@ function SearchOverlay({ open, onClose }) {
   );
 }
 
-function CartDrawer({ open, onClose, cart }) {
+function CartDrawer({ open, onClose, cart, onRemoveItem }) {
   const subtotal = cart.reduce((sum, product) => sum + product.price, 0);
 
   return (
     <AnimatePresence>
       {open && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm">
-          <motion.aside initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 28, stiffness: 220 }} className="ml-auto flex h-full w-full max-w-md flex-col bg-[#FFF8EF] p-6 dark:bg-[#1B1411]">
+          <motion.aside initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 28, stiffness: 220 }} className="ml-auto flex h-full w-full max-w-md flex-col bg-[#FFF8EF] p-6">
             <div className="flex items-center justify-between border-b border-[#B89A5E]/20 pb-5">
-              <h3 className="font-serif text-3xl text-[#1B1411] dark:text-[#FFF8EF]">Your Cart</h3>
-              <button onClick={onClose} className="rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/10"><X className="text-[#1B1411] dark:text-[#FFF8EF]" /></button>
+              <h3 className="font-serif text-3xl text-[#1B1411]">Your Cart</h3>
+              <button onClick={onClose} className="rounded-full p-2 hover:bg-black/5"><X className="text-[#1B1411]" /></button>
             </div>
 
             <div className="flex-1 space-y-4 overflow-y-auto py-6">
               {cart.length === 0 ? (
-                <div className="rounded-[2rem] border border-[#B89A5E]/20 bg-[#F7E8DD] p-6 text-center dark:border-white/10 dark:bg-white/5">
+                <div className="rounded-[2rem] border border-[#B89A5E]/20 bg-[#F7E8DD] p-6 text-center">
                   <ShoppingBag className="mx-auto mb-4 h-8 w-8 text-[#B89A5E]" />
-                  <p className="font-serif text-2xl text-[#1B1411] dark:text-[#FFF8EF]">Your cart is empty</p>
-                  <p className="mt-2 text-sm leading-6 text-[#1B1411]/65 dark:text-white/60">
+                  <p className="font-serif text-2xl text-[#1B1411]">Your cart is empty</p>
+                  <p className="mt-2 text-sm leading-6 text-[#1B1411]/65">
                     Add a pearl piece from the collection to preview checkout.
                   </p>
                   <a href="#shop" onClick={onClose} className="mt-5 inline-flex rounded-full bg-[#1B1411] px-5 py-3 text-sm font-medium text-[#FFF8EF] hover:bg-[#B89A5E] hover:text-[#1B1411]">
@@ -1171,21 +1592,44 @@ function CartDrawer({ open, onClose, cart }) {
                 </div>
               ) : (
                 cart.map((product, index) => (
-                  <div key={`${product.id}-${index}`} className="flex gap-4 rounded-2xl bg-[#F7E8DD] p-3 dark:bg-white/5">
+                  <motion.div
+                    key={`${product.id}-${index}`}
+                    layout
+                    initial={{ opacity: 0, x: 18 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 18 }}
+                    className="flex gap-4 rounded-2xl bg-[#F7E8DD] p-3"
+                  >
                     <img src={product.image} alt={product.name} className="h-24 w-24 rounded-xl object-cover" />
-                    <div className="flex-1">
-                      <p className="font-serif text-xl text-[#1B1411] dark:text-[#FFF8EF]">{product.name}</p>
-                      <p className="mt-1 text-sm text-[#1B1411]/60 dark:text-white/60">Qty 1 · {product.metal}</p>
-                      <p className="mt-3 font-medium text-[#1B1411] dark:text-[#FFF8EF]">{formatPrice(product.price)}</p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-serif text-xl leading-tight text-[#1B1411]">{product.name}</p>
+                          <p className="mt-1 text-sm text-[#1B1411]/60">Qty 1 · {product.metal}</p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => onRemoveItem(index)}
+                          className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#B89A5E]/25 bg-[#FFF8EF]/80 text-[#4A3832] transition hover:border-[#B89A5E] hover:bg-[#1B1411] hover:text-[#FFF8EF]"
+                          aria-label={`Remove ${product.name} from cart`}
+                        >
+                          <X className="h-4 w-4 stroke-[1.8]" />
+                        </button>
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        <p className="font-medium text-[#1B1411]">{formatPrice(product.price)}</p>
+                      </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))
               )}
             </div>
 
             <div className="border-t border-[#B89A5E]/20 pt-5">
-              <div className="mb-5 flex justify-between text-[#1B1411] dark:text-[#FFF8EF]"><span>Subtotal</span><span className="font-serif text-2xl">{formatPrice(subtotal)}</span></div>
-              <button disabled={cart.length === 0} className="w-full rounded-full bg-[#1B1411] px-6 py-4 text-sm font-medium text-[#FFF8EF] transition hover:bg-[#B89A5E] hover:text-[#1B1411] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#B89A5E] dark:text-[#1B1411]">
+              <div className="mb-5 flex justify-between text-[#1B1411]"><span>Subtotal</span><span className="font-serif text-2xl">{formatPrice(subtotal)}</span></div>
+              <button disabled={cart.length === 0} className="w-full rounded-full bg-[#1B1411] px-6 py-4 text-sm font-medium text-[#FFF8EF] transition hover:bg-[#B89A5E] hover:text-[#1B1411] disabled:cursor-not-allowed disabled:opacity-50">
                 Secure Checkout
               </button>
             </div>
@@ -1201,23 +1645,23 @@ function QuickViewModal({ product, onClose, onAddToCart }) {
     <AnimatePresence>
       {product && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[80] grid place-items-center bg-black/60 p-4 backdrop-blur-sm">
-          <motion.div initial={{ opacity: 0, y: 24, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 24, scale: 0.96 }} className="grid max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-[2.5rem] bg-[#FFF8EF] shadow-2xl dark:bg-[#161616] md:grid-cols-2">
+          <motion.div initial={{ opacity: 0, y: 24, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 24, scale: 0.96 }} className="grid max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-[2.5rem] bg-[#FFF8EF] shadow-2xl md:grid-cols-2">
             <div className="relative min-h-[360px] overflow-hidden bg-[#F7E8DD]">
               <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
             </div>
             <div className="relative overflow-y-auto p-8 sm:p-10">
-              <button onClick={onClose} className="absolute right-5 top-5 rounded-full p-2 hover:bg-black/5 dark:hover:bg-white/10"><X className="text-[#1B1411] dark:text-[#FFF8EF]" /></button>
-              <p className="text-xs uppercase tracking-[0.32em] text-[#8A6A3F] dark:text-[#B89A5E]">{product.category}</p>
-              <h3 className="mt-3 font-serif text-4xl text-[#1B1411] dark:text-[#FFF8EF]">{product.name}</h3>
-              <p className="mt-4 font-serif text-3xl text-[#1B1411] dark:text-[#FFF8EF]">{formatPrice(product.price)}</p>
-              <p className="mt-5 text-sm leading-7 text-[#1B1411]/70 dark:text-white/60">
+              <button onClick={onClose} className="absolute right-5 top-5 rounded-full p-2 hover:bg-black/5"><X className="text-[#1B1411]" /></button>
+              <p className="text-xs uppercase tracking-[0.32em] text-[#8A6A3F]">{product.category}</p>
+              <h3 className="mt-3 font-serif text-4xl text-[#1B1411]">{product.name}</h3>
+              <p className="mt-4 font-serif text-3xl text-[#1B1411]">{formatPrice(product.price)}</p>
+              <p className="mt-5 text-sm leading-7 text-[#1B1411]/70">
                 A luminous statement piece designed with balanced proportion, radiant pearl quality, and refined metal finishing.
               </p>
               <div className="mt-8 grid gap-3 sm:grid-cols-2">
                 <button onClick={() => { onAddToCart(product); onClose(); }} className="rounded-full bg-[#1B1411] px-6 py-4 text-sm font-medium text-[#FFF8EF] hover:bg-[#B89A5E] hover:text-[#1B1411]">
                   Add to Cart
                 </button>
-                <a href="#shop" onClick={onClose} className="rounded-full border border-[#B89A5E]/40 px-6 py-4 text-center text-sm font-medium text-[#1B1411] hover:bg-[#B89A5E]/10 dark:text-[#FFF8EF]">
+                <a href="#shop" onClick={onClose} className="rounded-full border border-[#B89A5E]/40 px-6 py-4 text-center text-sm font-medium text-[#1B1411] hover:bg-[#B89A5E]/10">
                   View Details
                 </a>
               </div>
@@ -1231,26 +1675,28 @@ function QuickViewModal({ product, onClose, onAddToCart }) {
 
 function About() {
   return (
-    <section id="about" className="bg-[#FFF8EF] px-6 py-24 dark:bg-[#161616] sm:px-8 lg:px-10">
-      <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+    <section id="about" className="relative overflow-hidden bg-[#FFF8EF] px-6 py-24 sm:px-8 lg:px-10">
+      <SoftBackgroundDecor />
+
+      <div className="relative z-10 mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
         <motion.div {...fadeUp}>
           <SectionLabel>About the Brand</SectionLabel>
-          <h2 className="font-serif text-4xl leading-tight text-[#1B1411] dark:text-[#FFF8EF] sm:text-6xl">Soft luxury, shaped by pearl light.</h2>
-          <p className="mt-6 text-sm leading-8 text-[#1B1411]/75 dark:text-white/65">
+          <h2 className="font-serif text-4xl leading-tight text-[#1B1411] sm:text-6xl">Soft luxury, shaped by pearl light.</h2>
+          <p className="mt-6 text-sm leading-8 text-[#1B1411]/75">
             PEARLfectly Pearls is styled around soft mint boxes, blush velvet packaging, warm ivory surfaces, and classic black typography. The look is gentle, feminine, clean, and product-focused—perfect for pearl stud earrings and gift sets.
           </p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             {["Premium craftsmanship", "Trustworthy sourcing", "Artistic restraint", "Heirloom quality"].map((item) => (
-              <div key={item} className="rounded-2xl border border-[#B89A5E]/20 bg-[#F7E8DD] p-4 text-sm text-[#1B1411] dark:border-white/10 dark:bg-white/5 dark:text-white/70">
+              <div key={item} className="rounded-2xl border border-[#B89A5E]/20 bg-[#F7E8DD]/82 p-4 text-sm text-[#1B1411] backdrop-blur-md">
                 <Sparkles className="mb-3 h-5 w-5 text-[#B89A5E]" /> {item}
               </div>
             ))}
           </div>
         </motion.div>
         <motion.div {...fadeUp} className="relative min-h-[560px]">
-          <img src="https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?auto=format&fit=crop&w=1300&q=85" alt="Luxury jewelry brand story" className="absolute right-0 top-0 h-[72%] w-[78%] rounded-[2.5rem] object-cover shadow-2xl" />
-          <div className="absolute bottom-0 left-0 w-[65%] rounded-[2rem] border border-[#B89A5E]/25 bg-[#FFF8EF]/85 p-6 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-[#1B1411]/80">
-            <p className="font-serif text-3xl text-[#1B1411] dark:text-[#FFF8EF]">Pearls chosen for luster, symmetry, surface, and soul.</p>
+          <img src="/weekly-pearl-box.png" alt="PEARLfectly pearl gift packaging and stud set" className="absolute right-0 top-0 h-[72%] w-[78%] rounded-[2.5rem] object-cover shadow-2xl" />
+          <div className="absolute bottom-0 left-0 w-[65%] rounded-[2rem] border border-[#B89A5E]/25 bg-[#FFF8EF]/82 p-6 shadow-2xl backdrop-blur-xl">
+            <p className="font-serif text-3xl text-[#1B1411]">Pearls chosen for luster, symmetry, surface, and timeless character.</p>
           </div>
         </motion.div>
       </div>
@@ -1259,7 +1705,6 @@ function About() {
 }
 
 export default function PEARLfectlyPearlsWebsite() {
-  const [darkMode, setDarkMode] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [quickView, setQuickView] = useState(null);
@@ -1270,13 +1715,15 @@ export default function PEARLfectlyPearlsWebsite() {
     setCart((prev) => [...prev, product]);
   };
 
-  const rootClass = useMemo(() => (darkMode ? "dark" : ""), [darkMode]);
+  const removeFromCart = (indexToRemove) => {
+    setCart((prev) => prev.filter((_, index) => index !== indexToRemove));
+  };
 
   return (
-    <div className={`${rootClass} scroll-smooth`}>
-      <main className="min-h-screen bg-[#FFF8EF] font-sans text-[#1B1411] antialiased dark:bg-[#1B1411]">
-        <div className="pointer-events-none fixed inset-0 z-[1] opacity-[0.025] mix-blend-multiply dark:opacity-[0.04]" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E')" }} />
-        <Navbar darkMode={darkMode} setDarkMode={setDarkMode} onSearch={() => setSearchOpen(true)} onCart={() => setCartOpen(true)} cartCount={cart.length} />
+    <div className="scroll-smooth">
+      <main className="min-h-screen bg-[#FFF8EF] font-sans text-[#1B1411] antialiased">
+        <div className="pointer-events-none fixed inset-0 z-[1] opacity-[0.025] mix-blend-multiply" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E')" }} />
+        <Navbar onSearch={() => setSearchOpen(true)} onCart={() => setCartOpen(true)} cartCount={cart.length} />
         <Hero />
         <TrustBar />
         <ProductShowcase onQuickView={setQuickView} addToCart={addToCart} />
@@ -1290,8 +1737,8 @@ export default function PEARLfectlyPearlsWebsite() {
         <Newsletter />
         <FAQ />
         <Footer />
-        <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
-        <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} />
+        <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} onQuickView={setQuickView} onAddToCart={addToCart} />
+        <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} onRemoveItem={removeFromCart} />
         <QuickViewModal product={quickView} onClose={() => setQuickView(null)} onAddToCart={addToCart} />
       </main>
     </div>

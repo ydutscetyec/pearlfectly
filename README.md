@@ -1,40 +1,40 @@
-<<<<<<< HEAD
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Pearlfectly — Next.js storefront
 
-## Getting Started
+This repository is a small Next.js app (app router) for a pearl jewelry storefront and admin dashboard.
 
-First, run the development server:
+Quick start
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# open http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Admin
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+- Visit `/signup` to create the first account — the first created user is automatically set as admin.
+- Admin dashboard: `/admin` (requires sign-in)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Pre-launch checklist (recommended)
 
-## Learn More
+- Use a managed database (Postgres / Supabase / PlanetScale) instead of local JSON files.
+- Hash passwords (done using `bcryptjs`).
+- Add an `isAdmin` role and secure admin endpoints (basic gating implemented).
+- Move secrets to environment variables and configure them in your host (Vercel secrets).
+- Integrate a payment provider (Stripe) for production checkout.
+- Add tests and CI (GitHub Actions).
+- Add monitoring/logging and backups.
 
-To learn more about Next.js, take a look at the following resources:
+Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Push to GitHub and connect to Vercel for simple deployments.
+- Configure environment variables in Vercel dashboard (`NEXTAUTH_URL`, `NEXTAUTH_SECRET`, provider client IDs).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Security notes
 
-## Deploy on Vercel
+- Do not commit `.env.local` or `data/*.json` containing real user data.
+- Rotate secrets if they were accidentally committed.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Contact
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-=======
-# pearfectly
->>>>>>> a57863162cbe5c1b1d7ed48f8075cbc3cce9bd66
+If you want help migrating to a database, setting up CI, or production hardening, I can implement the next steps.
