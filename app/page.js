@@ -245,7 +245,7 @@ function normalizeProduct(product) {
 
 function SectionLabel({ children, dark = false }) {
   return (
-    <div className="mb-5 flex items-center gap-3">
+    <div className="mb-4 flex items-center gap-3">
       <span className="h-px w-10 bg-[#B89A5E]" />
       <span
         className={`text-xs font-semibold uppercase tracking-[0.22em] ${
@@ -293,7 +293,7 @@ function DarkBackgroundDecor() {
 
 function LuxuryButton({ children, variant = "primary", className = "", onClick, href }) {
   const base =
-    "group inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold tracking-wide transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#B89A5E]/50";
+    "group inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold tracking-wide transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#B89A5E]/50";
   const styles =
     variant === "primary"
       ? "bg-[#1B1411] text-[#FFF8EF] shadow-xl shadow-black/10 hover:bg-[#B89A5E] hover:text-[#1B1411]"
@@ -471,7 +471,7 @@ function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0
       : "text-[#4A3832] drop-shadow-[0_1px_8px_rgba(255,248,239,0.85)]"
   } transition-colors duration-300 group-hover/nav:text-[#FFF8EF] group-focus-within/nav:text-[#FFF8EF]`;
 
-  const iconButton = `grid h-12 w-12 place-items-center rounded-full ${
+  const iconButton = `grid h-11 w-11 place-items-center rounded-full ${
     navIsSolid
       ? "text-[#FFF8EF] drop-shadow-none hover:bg-[#FFF8EF]/15"
       : "text-[#4A3832] drop-shadow-[0_1px_8px_rgba(255,248,239,0.85)] hover:bg-[#4A3832]/15"
@@ -488,7 +488,7 @@ function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -18, scale: 0.94 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
-            className="fixed left-4 top-6 z-[65] grid h-12 w-12 place-items-center rounded-full border border-[#B89A5E]/35 bg-[#4A3832]/90 text-[#FFF8EF] shadow-xl shadow-black/10 backdrop-blur-xl transition hover:bg-[#B89A5E] hover:text-[#1B1411] sm:left-6 lg:left-8"
+            className="fixed left-4 top-5 z-[65] grid h-10 w-10 place-items-center rounded-full border border-[#B89A5E]/35 bg-[#4A3832]/90 text-[#FFF8EF] shadow-xl shadow-black/10 backdrop-blur-xl transition hover:bg-[#B89A5E] hover:text-[#1B1411] sm:left-6 lg:left-8"
             aria-label="Show navigation bar"
           >
             <Menu className="h-6 w-6 stroke-[1.7]" />
@@ -505,32 +505,32 @@ function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0
             : "border-transparent bg-transparent shadow-none before:opacity-100 before:bg-gradient-to-b before:from-black/25 before:via-black/10 before:to-transparent after:opacity-0"
         } hover:border-[#B89A5E]/25 hover:bg-[#1B1411]/55 hover:shadow-xl hover:shadow-black/10 hover:backdrop-blur-2xl hover:before:opacity-100 hover:before:bg-[radial-gradient(circle_at_16%_18%,rgba(184,154,94,0.20),transparent_26%),radial-gradient(circle_at_78%_16%,rgba(207,233,223,0.12),transparent_28%),linear-gradient(135deg,rgba(27,20,17,0.78),rgba(74,56,50,0.48))] hover:after:opacity-100 focus-within:border-[#B89A5E]/25 focus-within:bg-[#1B1411]/55 focus-within:shadow-xl focus-within:shadow-black/10 focus-within:backdrop-blur-2xl focus-within:before:opacity-100 focus-within:before:bg-[radial-gradient(circle_at_16%_18%,rgba(184,154,94,0.20),transparent_26%),radial-gradient(circle_at_78%_16%,rgba(207,233,223,0.12),transparent_28%),linear-gradient(135deg,rgba(27,20,17,0.78),rgba(74,56,50,0.48))] focus-within:after:opacity-100`}
       >
-      <div className="relative z-10 mx-auto max-w-[1800px] px-5 sm:px-8 lg:px-14">
-        <div className="relative flex h-[8.25rem] items-center justify-center">
+      <div className="relative z-10 mx-auto max-w-[1680px] px-5 sm:px-8 lg:px-12">
+        <div className="relative flex h-[6.35rem] items-center justify-center">
           <button onClick={onSearch} className={`absolute left-0 ${iconButton}`} aria-label="Search">
-            <Search className="h-6 w-6 stroke-[1.6]" />
+            <Search className="h-5 w-5 stroke-[1.6]" />
           </button>
 
           <a href="/#home" onClick={(event) => handleNavClick(event, "/#home")} className="flex flex-col items-center text-center">
             <img
               src="/logo.png"
               alt="PEARLfectly logo"
-              className="mb-2 h-12 w-12 rounded-full border border-[#B89A5E]/40 bg-[#FFFDF7] object-cover p-1 shadow-md"
+              className="mb-1.5 h-10 w-10 rounded-full border border-[#B89A5E]/40 bg-[#FFFDF7] object-cover p-1 shadow-md"
             />
-            <span className={`font-serif text-[2.6rem] leading-none tracking-[0.1em] ${navText}`}>
+            <span className={`font-serif text-[2rem] leading-none tracking-[0.1em] ${navText}`}>
               PEARL<span className="tracking-normal">fectly</span>
             </span>
-            <span className={`mt-1 text-[12px] font-semibold uppercase tracking-[0.28em] ${navText}`}>
+            <span className={`mt-1 text-[10px] font-semibold uppercase tracking-[0.28em] ${navText}`}>
               PEARLS
             </span>
           </a>
 
-          <div className="absolute right-0 hidden items-center gap-6 sm:flex">
+          <div className="absolute right-0 hidden items-center gap-4 sm:flex">
             <button className={iconButton} aria-label="Account">
-              <UserRound className="h-6 w-6 stroke-[1.6]" />
+              <UserRound className="h-5 w-5 stroke-[1.6]" />
             </button>
             <button className={iconButton} aria-label="Messages">
-              <MessageCircle className="h-6 w-6 stroke-[1.6]" />
+              <MessageCircle className="h-5 w-5 stroke-[1.6]" />
             </button>
             <button
               type="button"
@@ -538,7 +538,7 @@ function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0
               className={`relative ${iconButton}`}
               aria-label="Open wishlist"
             >
-              <Heart className={`h-6 w-6 stroke-[1.6] ${wishlistCount > 0 ? "fill-current" : ""}`} />
+              <Heart className={`h-5 w-5 stroke-[1.6] ${wishlistCount > 0 ? "fill-current" : ""}`} />
               {wishlistCount > 0 && (
                 <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#F4C6D3] px-1 text-[10px] font-semibold text-[#1B1411] shadow-sm">
                   {wishlistCount}
@@ -551,7 +551,7 @@ function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0
               className={`relative ${iconButton}`}
               aria-label="Open cart"
             >
-              <ShoppingBag className="h-6 w-6 stroke-[1.6]" />
+              <ShoppingBag className="h-5 w-5 stroke-[1.6]" />
               <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#B89A5E] px-1 text-[10px] font-semibold text-[#1B1411] shadow-sm">
                 {cartCount}
               </span>
@@ -567,7 +567,7 @@ function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0
           </button>
         </div>
 
-        <nav className="hidden h-12 items-center justify-center gap-10 border-t border-[#B89A5E]/20 lg:flex">
+        <nav className="hidden h-10 items-center justify-center gap-9 border-t border-[#B89A5E]/20 lg:flex">
           {navLinks.map((link) => {
             const isShop = link.label === "SHOP";
 
@@ -582,7 +582,7 @@ function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0
                 <a
                   href={link.href}
                   onClick={(event) => handleNavClick(event, link.href)}
-                  className={`flex items-center gap-2 whitespace-nowrap text-[15px] font-semibold uppercase tracking-[0.22em] ${navText}`}
+                  className={`flex items-center gap-2 whitespace-nowrap text-[13px] font-semibold uppercase tracking-[0.22em] ${navText}`}
                 >
                   {link.label}
                   {link.hasDropdown && <ChevronDown className="h-4 w-4 stroke-[1.5]" />}
@@ -594,7 +594,7 @@ function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0
                       <div
                         onMouseEnter={openMegaMenu}
                         onMouseLeave={closeMegaMenu}
-                        className="absolute left-1/2 top-7 z-[130] h-8 w-[1020px] max-w-[calc(100vw-3rem)] -translate-x-1/2"
+                        className="absolute left-1/2 top-7 z-[130] h-8 w-[860px] max-w-[calc(100vw-2rem)] -translate-x-1/2"
                         aria-hidden="true"
                       />
                       <motion.div
@@ -604,7 +604,7 @@ function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0
                       transition={{ duration: 0.22, ease: "easeOut" }}
                       onMouseEnter={openMegaMenu}
                       onMouseLeave={closeMegaMenu}
-                      className="absolute left-1/2 top-10 z-[140] w-[1020px] max-w-[calc(100vw-3rem)] -translate-x-1/2 overflow-hidden rounded-[2rem] border border-[#D8C7A3]/45 bg-[#FFF8EF]/97 px-12 py-10 shadow-2xl shadow-black/14 backdrop-blur-2xl"
+                      className="absolute left-1/2 top-9 z-[140] w-[860px] max-w-[calc(100vw-2rem)] -translate-x-1/2 overflow-hidden rounded-[1.5rem] border border-[#D8C7A3]/45 bg-[#FFF8EF]/97 px-8 py-7 shadow-2xl shadow-black/14 backdrop-blur-2xl"
                     >
                       <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-[#CFE9DF]/55 blur-3xl" />
                       <div className="pointer-events-none absolute -bottom-20 -left-16 h-40 w-40 rounded-full bg-[#F4C6D3]/45 blur-3xl" />
@@ -612,7 +612,7 @@ function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0
                       <div className="relative grid gap-10 md:grid-cols-[1fr_1fr_1fr_0.9fr]">
                         {shopMegaMenu.map((group) => (
                           <div key={group.title}>
-                            <h3 className="mb-5 whitespace-nowrap text-[13px] font-bold uppercase tracking-[0.24em] text-[#8A6A3F]">
+                            <h3 className="mb-4 whitespace-nowrap text-[11px] font-bold uppercase tracking-[0.24em] text-[#8A6A3F]">
                               {group.title}
                             </h3>
 
@@ -622,7 +622,7 @@ function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0
                                   key={item}
                                   href="/#shop"
                                   onClick={(event) => handleNavClick(event, "/#shop")}
-                                  className="block rounded-full px-4 py-2.5 text-[17px] font-medium capitalize text-[#4A3832]/82 transition duration-300 hover:bg-[#F3E7D6]/80 hover:text-[#B89A5E]"
+                                  className="block rounded-full px-3 py-2 text-[14px] font-medium capitalize text-[#4A3832]/82 transition duration-300 hover:bg-[#F3E7D6]/80 hover:text-[#B89A5E]"
                                 >
                                   {item}
                                 </a>
@@ -632,16 +632,16 @@ function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0
                         ))}
 
                         <div className="rounded-[1.5rem] border border-[#B89A5E]/25 bg-[#FFFDF7]/80 p-5 shadow-sm">
-                          <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-[#B89A5E]">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#B89A5E]">
                             Gift-ready
                           </p>
-                          <p className="mt-3 font-serif text-[1.7rem] leading-tight text-[#1B1411]">
+                          <p className="mt-2 font-serif text-[1.35rem] leading-tight text-[#1B1411]">
                             Pearl boxes made for soft luxury gifting.
                           </p>
                           <a
                             href="/#shop"
                             onClick={(event) => handleNavClick(event, "/#shop")}
-                            className="mt-5 inline-flex items-center gap-2 text-base font-semibold text-[#8A6A3F] hover:text-[#B89A5E]"
+                            className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#8A6A3F] hover:text-[#B89A5E]"
                           >
                             Shop gift sets <ArrowRight className="h-4 w-4" />
                           </a>
@@ -701,13 +701,13 @@ function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0
 
               <div className="mt-8 grid grid-cols-5 gap-3">
                 <button onClick={onSearch} className="grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Search">
-                  <Search className="h-5 w-5" />
+                  <Search className="h-4 w-4" />
                 </button>
                 <button className="grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Account">
-                  <UserRound className="h-5 w-5" />
+                  <UserRound className="h-4 w-4" />
                 </button>
                 <button className="grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Messages">
-                  <MessageCircle className="h-5 w-5" />
+                  <MessageCircle className="h-4 w-4" />
                 </button>
                 <button onClick={onWishlist} className="relative grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Open wishlist">
                   <Heart className={`h-5 w-5 ${wishlistCount > 0 ? "fill-[#1B1411]" : ""}`} />
@@ -718,7 +718,7 @@ function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0
                   )}
                 </button>
                 <button data-cart-target="true" onClick={onCart} className="relative grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Open cart">
-                  <ShoppingBag className="h-5 w-5" />
+                  <ShoppingBag className="h-4 w-4" />
                   <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#B89A5E] px-1 text-[10px] font-semibold text-[#1B1411]">
                     {cartCount}
                   </span>
@@ -737,7 +737,7 @@ function Hero() {
   return (
     <section
       id="home"
-      className="relative min-h-screen overflow-hidden bg-[#FFF8EF] pt-[190px] text-[#1B1411]"
+      className="relative min-h-screen overflow-hidden bg-[#FFF8EF] pt-[150px] text-[#1B1411]"
     >
       <div className="absolute inset-0">
         <img
@@ -749,26 +749,26 @@ function Hero() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(207,233,223,0.45),transparent_30%),radial-gradient(circle_at_20%_90%,rgba(244,198,211,0.35),transparent_34%)]" />
       </div>
 
-      <div className="relative z-10 mx-auto flex min-h-[calc(108vh-190px)] max-w-[1280px] items-center px-6 pb-20 sm:px-8 lg:px-10">
+      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-150px)] max-w-[1120px] items-center px-5 pb-12 sm:px-7 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 36 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="w-full rounded-[3rem] border border-white/60 bg-[#FFF8EF]/72 p-8 shadow-2xl shadow-black/5 backdrop-blur-md lg:p-10"
+          className="w-full rounded-[2.25rem] border border-white/60 bg-[#FFF8EF]/72 p-6 shadow-2xl shadow-black/5 backdrop-blur-md lg:p-8"
         >
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,760px)_340px] xl:grid-cols-[minmax(0,820px)_340px] lg:items-center">
+          <div className="grid gap-7 lg:grid-cols-[minmax(0,640px)_300px] xl:grid-cols-[minmax(0,680px)_300px] lg:items-center">
             <div className="min-w-0">
               <SectionLabel dark>Pearlfectly Pearls</SectionLabel>
 
-              <h1 className="max-w-[820px] pb-2 font-serif text-5xl leading-[0.98] tracking-tight sm:text-6xl lg:text-[76px] xl:text-[84px]">
+              <h1 className="max-w-[680px] pb-2 font-serif text-4xl leading-[1.02] tracking-tight sm:text-5xl lg:text-[58px] xl:text-[64px]">
                 Pearls made for soft everyday elegance.
               </h1>
 
-              <p className="mt-7 max-w-2xl text-base leading-8 text-[#1B1411]/75 sm:text-lg">
+              <p className="mt-5 max-w-xl text-base leading-7 text-[#1B1411]/75 sm:text-[17px]">
                 Discover luminous pearl studs, gift-ready sets, and pastel boxes designed for refined everyday wear and thoughtful gifting.
               </p>
 
-              <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <LuxuryButton href="/#shop" variant="primary">Shop Collection</LuxuryButton>
                 <LuxuryButton href="/#shop" variant="outline" className="text-[#1B1411]">
                   Find Your Pearl Size
@@ -776,47 +776,47 @@ function Hero() {
               </div>
             </div>
 
-            <div className="relative hidden min-h-[390px] w-full max-w-[340px] self-center overflow-hidden rounded-[2.5rem] border border-[#B89A5E]/30 bg-[#FFFDF7]/78 p-7 shadow-2xl shadow-black/5 backdrop-blur-xl lg:flex lg:items-center lg:justify-center">
+            <div className="relative hidden min-h-[320px] w-full max-w-[300px] self-center overflow-hidden rounded-[2rem] border border-[#B89A5E]/30 bg-[#FFFDF7]/78 p-6 shadow-2xl shadow-black/5 backdrop-blur-xl lg:flex lg:items-center lg:justify-center">
               <div className="pointer-events-none absolute -top-16 left-10 h-[160%] w-28 rotate-12 bg-white/35 blur-sm" />
               <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-[#CFE9DF]/60 blur-2xl" />
               <div className="pointer-events-none absolute -bottom-14 -left-14 h-36 w-36 rounded-full bg-[#F4C6D3]/45 blur-2xl" />
 
               <div className="relative w-full">
-                <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-full border border-[#B89A5E]/30 bg-[#FFF8EF]/90 text-[#B89A5E] shadow-sm">
-                  <UserRound className="h-6 w-6 stroke-[1.5]" />
+                <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full border border-[#B89A5E]/30 bg-[#FFF8EF]/90 text-[#B89A5E] shadow-sm">
+                  <UserRound className="h-5 w-5 stroke-[1.5]" />
                 </div>
 
-                <p className="text-center text-xs font-semibold uppercase tracking-[0.3em] text-[#8A6A3F]">
+                <p className="text-center text-[11px] font-semibold uppercase tracking-[0.3em] text-[#8A6A3F]">
                   Pearl Member Access
                 </p>
 
-                <h2 className="mt-3 text-center font-serif text-3xl text-[#1B1411]">
+                <h2 className="mt-2.5 text-center font-serif text-2xl text-[#1B1411]">
                   Welcome Back!
                 </h2>
 
-                <p className="mx-auto mt-3 max-w-[260px] text-center text-sm leading-6 text-[#1B1411]/60">
+                <p className="mx-auto mt-3 max-w-[240px] text-center text-sm leading-6 text-[#1B1411]/60">
                   Access your saved pearl sets, gift picks, and recent viewing history.
                 </p>
 
-                <div className="my-6 h-px w-full bg-gradient-to-r from-transparent via-[#B89A5E]/35 to-transparent" />
+                <div className="my-5 h-px w-full bg-gradient-to-r from-transparent via-[#B89A5E]/35 to-transparent" />
 
-                <div className="space-y-3">
-                  <button className="group flex w-full items-center justify-center gap-2 rounded-full border border-[#B89A5E]/40 bg-[#FFF8EF]/70 px-5 py-3 text-sm font-medium text-[#1B1411] transition hover:bg-[#CFE9DF]/70">
+                <div className="space-y-2.5">
+                  <button className="group flex w-full items-center justify-center gap-2 rounded-full border border-[#B89A5E]/40 bg-[#FFF8EF]/70 px-5 py-2.5 text-sm font-medium text-[#1B1411] transition hover:bg-[#CFE9DF]/70">
                     Sign In
                     <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
                   </button>
 
-                  <button className="group flex w-full items-center justify-center gap-2 rounded-full bg-[#1B1411] px-5 py-3 text-sm font-medium text-[#FFF8EF] shadow-lg shadow-black/10 transition hover:bg-[#B89A5E] hover:text-[#1B1411]">
+                  <button className="group flex w-full items-center justify-center gap-2 rounded-full bg-[#1B1411] px-5 py-2.5 text-sm font-medium text-[#FFF8EF] shadow-lg shadow-black/10 transition hover:bg-[#B89A5E] hover:text-[#1B1411]">
                     Create Account
                     <Sparkles className="h-4 w-4" />
                   </button>
 
-                  <button className="w-full rounded-full bg-[#CFE9DF]/85 px-5 py-3 text-sm font-medium text-[#1B1411] transition hover:bg-[#F4C6D3]/75">
+                  <button className="w-full rounded-full bg-[#CFE9DF]/85 px-5 py-2.5 text-sm font-medium text-[#1B1411] transition hover:bg-[#F4C6D3]/75">
                     Continue Viewing
                   </button>
                 </div>
 
-                <p className="mt-5 text-center text-[11px] leading-5 text-[#1B1411]/40">
+                <p className="mt-4 text-center text-[11px] leading-5 text-[#1B1411]/40">
                   Soft luxury, saved for your next visit.
                 </p>
               </div>
@@ -837,10 +837,10 @@ function TrustBar() {
   ];
 
   return (
-    <section className="relative overflow-hidden bg-[#FFF8EF] px-6 py-12 sm:px-8 lg:px-10">
+    <section className="relative overflow-hidden bg-[#FFF8EF] px-5 py-8 sm:px-6 lg:px-8">
       <SoftBackgroundDecor />
 
-      <div className="relative z-10 mx-auto grid max-w-7xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="relative z-10 mx-auto grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {items.map((item, index) => {
           const Icon = item.icon;
           return (
@@ -848,13 +848,13 @@ function TrustBar() {
               key={item.title}
               {...fadeUp}
               transition={{ ...fadeUp.transition, delay: index * 0.05 }}
-              className="rounded-[1.75rem] border border-[#B89A5E]/20 bg-[#FFFDF7]/82 p-5 shadow-lg shadow-black/5 backdrop-blur-md"
+              className="rounded-[1.5rem] border border-[#B89A5E]/20 bg-[#FFFDF7]/82 p-5 shadow-lg shadow-black/5 backdrop-blur-md"
             >
-              <div className="mb-4 grid h-11 w-11 place-items-center rounded-full bg-[#CFE9DF]/70 text-[#8A6A3F]">
+              <div className="mb-3 grid h-9 w-9 place-items-center rounded-full bg-[#CFE9DF]/70 text-[#8A6A3F]">
                 <Icon className="h-5 w-5" />
               </div>
-              <h3 className="font-serif text-xl text-[#1B1411]">{item.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-[#1B1411]/65">{item.copy}</p>
+              <h3 className="font-serif text-lg text-[#1B1411]">{item.title}</h3>
+              <p className="mt-1.5 text-sm leading-6 text-[#1B1411]/65">{item.copy}</p>
             </motion.div>
           );
         })}
@@ -865,36 +865,36 @@ function TrustBar() {
 
 function FeaturedCollections() {
   return (
-    <section id="collections" className="relative overflow-hidden bg-[#DCEFE8] px-6 py-28 sm:px-8 lg:px-10">
+    <section id="collections" className="relative overflow-hidden bg-[#DCEFE8] px-5 py-20 sm:px-6 lg:px-8">
       <MintBackgroundDecor />
 
-      <div className="relative z-10 mx-auto max-w-7xl">
+      <div className="relative z-10 mx-auto max-w-6xl">
         <motion.div {...fadeUp} className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <SectionLabel>Featured Collections</SectionLabel>
-            <h2 className="max-w-3xl font-serif text-4xl leading-tight text-[#1B1411] sm:text-6xl">
+            <h2 className="max-w-2xl font-serif text-3xl leading-tight text-[#1B1411] sm:text-5xl">
               Soft packaging, polished pearls, and gift-ready details.
             </h2>
           </div>
-          <p className="max-w-md text-sm leading-7 text-[#1B1411]/75">
+          <p className="max-w-md text-sm leading-6 text-[#1B1411]/75">
             Inspired by mint jewelry trays, blush velvet boxes, creamy silk backdrops, and classic black typography.
           </p>
         </motion.div>
 
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
           {collections.map((item, index) => (
             <motion.article
               key={item.title}
               {...fadeUp}
               transition={{ ...fadeUp.transition, delay: index * 0.08 }}
-              className={`group relative min-h-[420px] overflow-hidden rounded-[2rem] ${index === 0 ? "lg:col-span-2" : ""}`}
+              className={`group relative min-h-[320px] overflow-hidden rounded-[1.5rem] ${index === 0 ? "lg:col-span-2" : ""}`}
             >
               <img src={item.image} alt={item.title} className="absolute inset-0 h-full w-full object-cover transition duration-1000 group-hover:scale-110" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-6 text-white">
-                <p className="font-serif text-3xl">{item.title}</p>
-                <p className="mt-3 text-sm leading-6 text-white/75">{item.copy}</p>
-                <button className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-[#B89A5E]">
+              <div className="absolute inset-x-0 bottom-0 p-5 text-white">
+                <p className="font-serif text-2xl">{item.title}</p>
+                <p className="mt-2 text-sm leading-6 text-white/75">{item.copy}</p>
+                <button className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[#B89A5E]">
                   View Collection <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
                 </button>
               </div>
@@ -1031,11 +1031,11 @@ function ProductCard({ product, onQuickView, addToCart, isWishlisted = false, on
             : "0 0 0 rgba(184, 154, 94, 0)",
         }}
         transition={{ duration: 0.24, ease: "easeOut" }}
-        className={`group overflow-hidden rounded-[2rem] border bg-[#FFF8EF]/88 shadow-xl shadow-black/5 backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/10 ${
+        className={`group overflow-hidden rounded-[1.5rem] border bg-[#FFF8EF]/88 shadow-xl shadow-black/5 backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/10 ${
           isAdded ? "border-[#B89A5E]/60" : "border-[#B89A5E]/20"
         }`}
       >
-        <div className="relative aspect-[4/3] overflow-hidden bg-[#F7E8DD]">
+        <div className="relative aspect-[1.12/1] overflow-hidden bg-[#F7E8DD]">
           <img
             ref={productImageRef}
             src={product.image}
@@ -1043,7 +1043,7 @@ function ProductCard({ product, onQuickView, addToCart, isWishlisted = false, on
             className="h-full w-full object-cover transition duration-1000 group-hover:scale-110"
           />
 
-          <div className="absolute left-4 top-4 rounded-full bg-[#FFF8EF]/90 px-4 py-2 text-xs font-semibold text-[#1B1411] backdrop-blur">
+          <div className="absolute left-3 top-3 rounded-full bg-[#FFF8EF]/90 px-3 py-1.5 text-[11px] font-semibold text-[#1B1411] backdrop-blur">
             {product.tag}
           </div>
 
@@ -1053,21 +1053,21 @@ function ProductCard({ product, onQuickView, addToCart, isWishlisted = false, on
             animate={{ scale: liked ? 1.08 : 1 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
             onClick={() => onToggleWishlist?.(product)}
-            className={`absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full backdrop-blur transition ${
+            className={`absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full backdrop-blur transition ${
               liked
                 ? "bg-[#F4C6D3] text-[#1B1411]"
                 : "bg-[#FFF8EF]/90 text-[#1B1411] hover:bg-[#B89A5E]"
             }`}
             aria-label={liked ? "Remove from wishlist" : "Add to wishlist"}
           >
-            <Heart className={`h-5 w-5 ${liked ? "fill-[#1B1411]" : ""}`} />
+            <Heart className={`h-4 w-4 ${liked ? "fill-[#1B1411]" : ""}`} />
           </motion.button>
 
-          <div className="absolute bottom-4 left-4 flex translate-y-4 opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+          <div className="absolute bottom-3 left-3 flex translate-y-3 opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
             <button
               type="button"
               onClick={() => onQuickView(product)}
-              className="inline-flex items-center justify-center gap-1.5 rounded-full bg-[#1B1411] px-4 py-2 text-xs font-medium text-[#FFF8EF] shadow-lg shadow-black/10 transition hover:bg-[#B89A5E] hover:text-[#1B1411]"
+              className="inline-flex items-center justify-center gap-1.5 rounded-full bg-[#1B1411] px-3.5 py-1.5 text-xs font-medium text-[#FFF8EF] shadow-lg shadow-black/10 transition hover:bg-[#B89A5E] hover:text-[#1B1411]"
             >
               <ZoomIn className="h-3.5 w-3.5" />
               Quick View
@@ -1075,8 +1075,8 @@ function ProductCard({ product, onQuickView, addToCart, isWishlisted = false, on
           </div>
         </div>
 
-        <div className="p-6">
-          <div className="mb-3 flex items-center gap-1 text-[#B89A5E]">
+        <div className="p-4">
+          <div className="mb-2 flex items-center gap-1 text-[#B89A5E]">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star
                 key={i}
@@ -1091,25 +1091,25 @@ function ProductCard({ product, onQuickView, addToCart, isWishlisted = false, on
             {product.category}
           </p>
 
-          <h3 className="mt-2 font-serif text-2xl text-[#1B1411]">
+          <h3 className="mt-1.5 font-serif text-xl text-[#1B1411]">
             {product.name}
           </h3>
 
-          <p className="mt-2 text-sm text-[#1B1411]/70">
+          <p className="mt-1.5 text-xs leading-5 text-[#1B1411]/70">
             {product.pearl} · {product.metal}
           </p>
 
-          <div className="mt-0.5 space-y-3">
-            <p className="font-serif text-2xl text-[#1B1411]">
+          <div className="mt-1 space-y-2.5">
+            <p className="font-serif text-xl text-[#1B1411]">
               {formatPrice(product.price)}
             </p>
 
             <div className="flex w-full items-center gap-2">
-              <div className="flex h-9 shrink-0 items-center rounded-full border border-[#B89A5E]/30 bg-[#FFFDF7]/80">
+              <div className="flex h-8 shrink-0 items-center rounded-full border border-[#B89A5E]/30 bg-[#FFFDF7]/80">
                 <button
                   type="button"
                   onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-                  className="grid h-9 w-8 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#F7E8DD]"
+                  className="grid h-8 w-7 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#F7E8DD]"
                   aria-label={`Decrease quantity of ${product.name}`}
                 >
                   <Minus className="h-3.5 w-3.5" />
@@ -1123,7 +1123,7 @@ function ProductCard({ product, onQuickView, addToCart, isWishlisted = false, on
                   type="button"
                   onClick={() => setQuantity((prev) => Math.min(stock, prev + 1))}
                   disabled={isOutOfStock || quantity >= stock}
-                  className="grid h-9 w-8 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#F7E8DD] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="grid h-8 w-7 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#F7E8DD] disabled:cursor-not-allowed disabled:opacity-40"
                   aria-label={`Increase quantity of ${product.name}`}
                 >
                   <Plus className="h-3.5 w-3.5" />
@@ -1136,7 +1136,7 @@ function ProductCard({ product, onQuickView, addToCart, isWishlisted = false, on
                 animate={{ scale: isAdded ? 1.04 : 1 }}
                 transition={{ duration: 0.18, ease: "easeOut" }}
                 onClick={handleCardAddToCart}
-                className={`min-w-0 flex-1 overflow-hidden rounded-full px-3 py-2 text-center text-sm font-semibold transition ${
+                className={`min-w-0 flex-1 overflow-hidden rounded-full px-3 py-1.5 text-center text-xs font-semibold transition ${
                   isAdded
                     ? "bg-[#CFE9DF] text-[#1B1411] shadow-sm"
                     : "text-[#8A6A3F] hover:bg-[#F3E7D6]/70 hover:text-[#1B1411]"
@@ -1173,27 +1173,27 @@ function ProductShowcase({ products, onQuickView, addToCart, isWishlisted, onTog
       : displayProducts.filter((p) => p.category === activeFilter);
 
   return (
-    <section id="shop" className="relative overflow-hidden bg-[#FFF8EF] px-6 py-24 sm:px-8 lg:px-10">
+    <section id="shop" className="relative overflow-hidden bg-[#FFF8EF] px-5 py-16 sm:px-6 lg:px-8">
       <SoftBackgroundDecor />
 
-      <div className="relative z-10 mx-auto max-w-7xl">
-        <motion.div {...fadeUp} className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+      <div className="relative z-10 mx-auto max-w-6xl">
+        <motion.div {...fadeUp} className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <SectionLabel>Shop</SectionLabel>
-            <h2 className="font-serif text-4xl text-[#1B1411] sm:text-6xl">
+            <h2 className="font-serif text-3xl text-[#1B1411] sm:text-5xl">
               Best sellers & new arrivals
             </h2>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-[#1B1411]/70">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#1B1411]/70">
               Shop polished pearl studs and gift-ready sets with clear prices, quick view, and easy add-to-cart actions.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2 rounded-full border border-[#B89A5E]/20 bg-[#F7E8DD]/82 p-2 backdrop-blur-md">
-            <span className="grid h-10 w-10 place-items-center rounded-full text-[#8A6A3F]"><SlidersHorizontal className="h-4 w-4" /></span>
+          <div className="flex flex-wrap gap-1.5 rounded-full border border-[#B89A5E]/20 bg-[#F7E8DD]/82 p-1.5 backdrop-blur-md">
+            <span className="grid h-9 w-9 place-items-center rounded-full text-[#8A6A3F]"><SlidersHorizontal className="h-4 w-4" /></span>
             {filters.map((filter) => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`rounded-full px-4 py-2 text-sm transition ${
+                className={`rounded-full px-3 py-1.5 text-xs transition ${
                   activeFilter === filter
                     ? "bg-[#1B1411] text-[#FFF8EF]"
                     : "text-[#1B1411] hover:bg-white"
@@ -1204,7 +1204,7 @@ function ProductShowcase({ products, onQuickView, addToCart, isWishlisted, onTog
             ))}
           </div>
         </motion.div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {visible.length > 0 ? (
             visible.map((product) => (
               <ProductCard
@@ -1217,7 +1217,7 @@ function ProductShowcase({ products, onQuickView, addToCart, isWishlisted, onTog
               />
             ))
           ) : (
-            <div className="col-span-full rounded-[2rem] border border-[#B89A5E]/20 bg-[#F7E8DD]/82 p-8 text-center">
+            <div className="col-span-full rounded-[1.5rem] border border-[#B89A5E]/20 bg-[#F7E8DD]/82 p-6 text-center">
               <p className="font-serif text-2xl text-[#1B1411]">No products yet</p>
               <p className="mt-2 text-sm text-[#1B1411]/60">
                 Add products from the admin page, then refresh this page.
@@ -1239,22 +1239,22 @@ function Craftsmanship() {
   ];
 
   return (
-    <section id="craftsmanship" className="relative overflow-hidden bg-[#1B1411] px-6 py-28 text-[#FFF8EF] sm:px-8 lg:px-10">
+    <section id="craftsmanship" className="relative overflow-hidden bg-[#1B1411] px-5 py-20 text-[#FFF8EF] sm:px-6 lg:px-8">
       <DarkBackgroundDecor />
 
-      <div className="relative z-10 mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+      <div className="relative z-10 mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
         <motion.div {...fadeUp}>
           <SectionLabel dark>Craftsmanship</SectionLabel>
-          <h2 className="font-serif text-4xl leading-tight sm:text-6xl">A modern atelier approach to pearl jewelry.</h2>
-          <p className="mt-6 text-base leading-8 text-white/70">
+          <h2 className="font-serif text-3xl leading-tight sm:text-5xl">A modern atelier approach to pearl jewelry.</h2>
+          <p className="mt-4 text-sm leading-7 text-white/70">
             PEARLfectly Pearls begins with the pearl itself: its glow, movement, and character. From there, each silhouette is drawn, balanced, finished, and inspected to preserve the natural elegance of the gem.
           </p>
-          <div className="mt-8 rounded-[2rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
-            <p className="font-serif text-2xl text-[#B89A5E]">“True luxury is quiet. It is seen in restraint, felt in finish, and remembered through time.”</p>
+          <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+            <p className="font-serif text-xl text-[#B89A5E]">“True luxury is quiet. It is seen in restraint, felt in finish, and remembered through time.”</p>
           </div>
         </motion.div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2">
           {values.map((value, index) => {
             const Icon = value.icon;
             return (
@@ -1262,13 +1262,13 @@ function Craftsmanship() {
                 key={value.title}
                 {...fadeUp}
                 transition={{ ...fadeUp.transition, delay: index * 0.08 }}
-                className="rounded-[2rem] border border-white/10 bg-white/[0.07] p-6 backdrop-blur-xl transition hover:-translate-y-1 hover:bg-white/[0.11]"
+                className="rounded-[1.5rem] border border-white/10 bg-white/[0.07] p-5 backdrop-blur-xl transition hover:-translate-y-1 hover:bg-white/[0.11]"
               >
-                <div className="mb-6 grid h-12 w-12 place-items-center rounded-full bg-[#B89A5E]/15 text-[#B89A5E]">
-                  <Icon className="h-6 w-6" />
+                <div className="mb-4 grid h-10 w-10 place-items-center rounded-full bg-[#B89A5E]/15 text-[#B89A5E]">
+                  <Icon className="h-5 w-5" />
                 </div>
-                <h3 className="font-serif text-2xl">{value.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-white/65">{value.copy}</p>
+                <h3 className="font-serif text-xl">{value.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-white/65">{value.copy}</p>
               </motion.div>
             );
           })}
@@ -1291,50 +1291,50 @@ function ProductDetailLayout({ products, addToCart, isWishlisted, onToggleWishli
   const productIsWishlisted = isWishlisted?.(product);
 
   return (
-    <section id="product-details" className="relative scroll-mt-40 overflow-hidden bg-[#F7E8DD] px-6 py-24 sm:px-8 lg:px-10">
+    <section id="product-details" className="relative scroll-mt-32 overflow-hidden bg-[#F7E8DD] px-5 py-16 sm:px-6 lg:px-8">
       <SoftBackgroundDecor />
 
-      <div className="relative z-10 mx-auto max-w-7xl">
-        <motion.div {...fadeUp} className="mb-12 text-center">
+      <div className="relative z-10 mx-auto max-w-6xl">
+        <motion.div {...fadeUp} className="mb-8 text-center">
           <div className="mx-auto flex justify-center"><SectionLabel>Product Detail Preview</SectionLabel></div>
-          <h2 className="font-serif text-4xl text-[#1B1411] sm:text-6xl">A clearer product buying flow</h2>
-          <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-[#1B1411]/70">
+          <h2 className="font-serif text-3xl text-[#1B1411] sm:text-5xl">A clearer product buying flow</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-[#1B1411]/70">
             A stronger buying flow builds trust with finish options, reviews, secure checkout cues, and a working add-to-cart action.
           </p>
         </motion.div>
 
-        <div className="grid gap-8 rounded-[2.5rem] border border-[#B89A5E]/20 bg-[#FFF8EF]/88 p-4 shadow-2xl shadow-black/5 backdrop-blur-md lg:grid-cols-2 lg:p-8">
-          <div className="grid gap-4 sm:grid-cols-[0.22fr_1fr]">
-            <div className="hidden gap-4 sm:grid">
+        <div className="grid gap-6 rounded-[1.75rem] border border-[#B89A5E]/20 bg-[#FFF8EF]/88 p-4 shadow-xl shadow-black/5 backdrop-blur-md lg:grid-cols-2 lg:p-6">
+          <div className="grid gap-3 sm:grid-cols-[0.2fr_1fr]">
+            <div className="hidden gap-3 sm:grid">
               {displayProducts.slice(0, 3).map((item, index) => (
-                <button key={`${item.id}-${index}`} className="overflow-hidden rounded-2xl border border-[#B89A5E]/20 bg-[#F7E8DD]">
+                <button key={`${item.id}-${index}`} className="overflow-hidden rounded-xl border border-[#B89A5E]/20 bg-[#F7E8DD]">
                   <img src={item.image} alt={item.name} className="aspect-square h-full w-full object-cover" />
                 </button>
               ))}
             </div>
-            <div className="group relative overflow-hidden rounded-[2rem] bg-[#F7E8DD]">
+            <div className="group relative overflow-hidden rounded-[1.5rem] bg-[#F7E8DD]">
               <img src={product.image} alt={product.name} className="aspect-[4/5] h-full w-full object-cover transition duration-1000 group-hover:scale-110" />
-              <div className="absolute right-5 top-5 rounded-full bg-[#FFF8EF]/90 p-3 text-[#1B1411] backdrop-blur">
+              <div className="absolute right-4 top-4 rounded-full bg-[#FFF8EF]/90 p-2.5 text-[#1B1411] backdrop-blur">
                 <ZoomIn className="h-5 w-5" />
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col justify-center p-2 lg:p-8">
+          <div className="flex flex-col justify-center p-2 lg:p-5">
             <p className="text-xs uppercase tracking-[0.32em] text-[#8A6A3F]">Pearl Stud Earrings</p>
-            <h3 className="mt-3 font-serif text-4xl text-[#1B1411] sm:text-5xl">{product.name}</h3>
-            <div className="mt-4 flex items-center gap-3">
+            <h3 className="mt-2 font-serif text-3xl text-[#1B1411] sm:text-4xl">{product.name}</h3>
+            <div className="mt-3 flex items-center gap-3">
               <div className="flex text-[#B89A5E]">
                 {Array.from({ length: 5 }).map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}
               </div>
               <span className="text-sm text-[#1B1411]/65">48 customer reviews</span>
             </div>
-            <p className="mt-6 font-serif text-3xl text-[#1B1411]">{formatPrice(product.price)}</p>
-            <p className="mt-5 max-w-xl text-sm leading-7 text-[#1B1411]/75">
+            <p className="mt-4 font-serif text-2xl text-[#1B1411]">{formatPrice(product.price)}</p>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-[#1B1411]/75">
               A luminous pearl stud set inspired by soft blush boxes, mint packaging, and warm gold details. Designed for clean product display, gifting, and everyday quiet luxury.
             </p>
 
-            <div className="mt-8 space-y-5">
+            <div className="mt-6 space-y-4">
               <div>
                 <p className="mb-3 text-sm font-medium text-[#1B1411]">Pearl / Backing Finish</p>
                 <div className="flex flex-wrap gap-2">
@@ -1342,7 +1342,7 @@ function ProductDetailLayout({ products, addToCart, isWishlisted, onToggleWishli
                     <button
                       key={item}
                       onClick={() => setVariant(item)}
-                      className={`rounded-full border px-4 py-2 text-sm transition ${
+                      className={`rounded-full border px-3 py-1.5 text-sm transition ${
                         variant === item
                           ? "border-[#1B1411] bg-[#1B1411] text-[#FFF8EF]"
                           : "border-[#B89A5E]/30 text-[#1B1411] hover:border-[#B89A5E] hover:bg-[#F3E7D6]/60"
@@ -1354,25 +1354,25 @@ function ProductDetailLayout({ products, addToCart, isWishlisted, onToggleWishli
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-4">
+              <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center rounded-full border border-[#B89A5E]/30">
-                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-3"><Minus className="h-4 w-4" /></button>
+                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-2.5"><Minus className="h-4 w-4" /></button>
                   <span className="min-w-10 text-center text-sm text-[#1B1411]">{quantity}</span>
-                  <button onClick={() => setQuantity(quantity + 1)} className="p-3"><Plus className="h-4 w-4" /></button>
+                  <button onClick={() => setQuantity(quantity + 1)} className="p-2.5"><Plus className="h-4 w-4" /></button>
                 </div>
                 <LuxuryButton onClick={() => Array.from({ length: quantity }).forEach(() => addToCart(product))} className="flex-1 sm:flex-none">
                   Add to Cart
                 </LuxuryButton>
                 <button
                   onClick={() => Array.from({ length: quantity }).forEach(() => addToCart(product))}
-                  className="rounded-full border border-[#B89A5E]/40 px-6 py-3 text-sm font-semibold text-[#1B1411] transition hover:bg-[#CFE9DF]/60"
+                  className="rounded-full border border-[#B89A5E]/40 px-5 py-2.5 text-sm font-semibold text-[#1B1411] transition hover:bg-[#CFE9DF]/60"
                 >
                   Buy Now
                 </button>
                 <button
                   type="button"
                   onClick={() => onToggleWishlist?.(product)}
-                  className={`grid h-12 w-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411] transition ${
+                  className={`grid h-10 w-10 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411] transition ${
                     productIsWishlisted ? "bg-[#F4C6D3]" : "hover:bg-[#CFE9DF]/70"
                   }`}
                   aria-label={productIsWishlisted ? "Remove from wishlist" : "Add to wishlist"}
@@ -1382,13 +1382,13 @@ function ProductDetailLayout({ products, addToCart, isWishlisted, onToggleWishli
               </div>
             </div>
 
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+            <div className="mt-6 grid gap-2 sm:grid-cols-3">
               {[
                 [ShieldCheck, "Authenticity"],
                 [Truck, "Tracked shipping"],
                 [CreditCard, "Secure checkout"],
               ].map(([Icon, label]) => (
-                <div key={label} className="flex items-center gap-2 rounded-2xl bg-[#F7E8DD] p-3 text-xs text-[#1B1411]">
+                <div key={label} className="flex items-center gap-2 rounded-xl bg-[#F7E8DD] p-2.5 text-xs text-[#1B1411]">
                   <Icon className="h-4 w-4 text-[#B89A5E]" /> {label}
                 </div>
               ))}
@@ -1414,14 +1414,14 @@ function LuxuryExperience() {
   ];
 
   return (
-    <section className="relative overflow-hidden bg-[#FFF8EF] px-6 py-24 sm:px-8 lg:px-10">
+    <section className="relative overflow-hidden bg-[#FFF8EF] px-5 py-16 sm:px-6 lg:px-8">
       <SoftBackgroundDecor />
-      <div className="relative z-10 mx-auto max-w-7xl">
-        <motion.div {...fadeUp} className="mb-12 text-center">
+      <div className="relative z-10 mx-auto max-w-6xl">
+        <motion.div {...fadeUp} className="mb-8 text-center">
           <div className="mx-auto flex justify-center"><SectionLabel>Luxury Experience</SectionLabel></div>
-          <h2 className="font-serif text-4xl text-[#1B1411] sm:text-6xl">A soft, gift-ready luxury experience.</h2>
+          <h2 className="font-serif text-3xl text-[#1B1411] sm:text-5xl">A soft, gift-ready luxury experience.</h2>
         </motion.div>
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {perks.map((perk, index) => {
             const Icon = perk.icon;
             return (
@@ -1429,13 +1429,13 @@ function LuxuryExperience() {
                 key={perk.title}
                 {...fadeUp}
                 transition={{ ...fadeUp.transition, delay: index * 0.08 }}
-                className="rounded-[2rem] border border-[#B89A5E]/20 bg-gradient-to-br from-[#FFF8EF]/90 to-[#F7E8DD]/82 p-7 shadow-xl shadow-black/5 backdrop-blur-md transition hover:-translate-y-1"
+                className="rounded-[1.5rem] border border-[#B89A5E]/20 bg-gradient-to-br from-[#FFF8EF]/90 to-[#F7E8DD]/82 p-5 shadow-lg shadow-black/5 backdrop-blur-md transition hover:-translate-y-1"
               >
-                <div className="mb-7 grid h-14 w-14 place-items-center rounded-full bg-[#B89A5E]/20 text-[#8A6A3F]">
-                  <Icon className="h-6 w-6" />
+                <div className="mb-4 grid h-11 w-11 place-items-center rounded-full bg-[#B89A5E]/20 text-[#8A6A3F]">
+                  <Icon className="h-5 w-5" />
                 </div>
-                <h3 className="font-serif text-2xl text-[#1B1411]">{perk.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-[#1B1411]/70">{perk.copy}</p>
+                <h3 className="font-serif text-xl text-[#1B1411]">{perk.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-[#1B1411]/70">{perk.copy}</p>
               </motion.div>
             );
           })}
@@ -1450,14 +1450,14 @@ function Testimonials() {
   const current = testimonials[active];
 
   return (
-    <section id="testimonials" className="relative overflow-hidden bg-[#F7E8DD] px-6 py-24 sm:px-8 lg:px-10">
+    <section id="testimonials" className="relative overflow-hidden bg-[#F7E8DD] px-5 py-16 sm:px-6 lg:px-8">
       <SoftBackgroundDecor />
 
-      <div className="relative z-10 mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+      <div className="relative z-10 mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
         <motion.div {...fadeUp}>
           <SectionLabel>Testimonials</SectionLabel>
-          <h2 className="font-serif text-4xl leading-tight text-[#1B1411] sm:text-6xl">Loved by brides, collectors, and thoughtful gift-givers.</h2>
-          <div className="mt-8 flex gap-3">
+          <h2 className="font-serif text-3xl leading-tight text-[#1B1411] sm:text-5xl">Loved by brides, collectors, and thoughtful gift-givers.</h2>
+          <div className="mt-6 flex gap-3">
             {testimonials.map((item, index) => (
               <button
                 key={item.name}
@@ -1469,7 +1469,7 @@ function Testimonials() {
           </div>
         </motion.div>
         <div className="relative">
-          <div className="absolute -inset-6 rounded-[3rem] bg-gradient-to-br from-[#B89A5E]/25 to-transparent blur-2xl" />
+          <div className="absolute -inset-4 rounded-[2rem] bg-gradient-to-br from-[#B89A5E]/25 to-transparent blur-2xl" />
           <AnimatePresence mode="wait">
             <motion.div
               key={current.name}
@@ -1477,12 +1477,12 @@ function Testimonials() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.5 }}
-              className="relative rounded-[2.5rem] border border-[#B89A5E]/20 bg-[#FFF8EF]/88 p-8 shadow-2xl shadow-black/5 backdrop-blur-md sm:p-10"
+              className="relative rounded-[1.75rem] border border-[#B89A5E]/20 bg-[#FFF8EF]/88 p-6 shadow-xl shadow-black/5 backdrop-blur-md sm:p-8"
             >
-              <Quote className="mb-8 h-10 w-10 text-[#B89A5E]" />
-              <p className="font-serif text-3xl leading-snug text-[#1B1411] sm:text-4xl">“{current.review}”</p>
-              <div className="mt-8 flex items-center gap-4">
-                <img src={current.image} alt={current.name} className="h-14 w-14 rounded-full object-cover" />
+              <Quote className="mb-5 h-8 w-8 text-[#B89A5E]" />
+              <p className="font-serif text-2xl leading-snug text-[#1B1411] sm:text-3xl">“{current.review}”</p>
+              <div className="mt-6 flex items-center gap-4">
+                <img src={current.image} alt={current.name} className="h-12 w-12 rounded-full object-cover" />
                 <div>
                   <p className="font-medium text-[#1B1411]">{current.name}</p>
                   <p className="text-sm text-[#1B1411]/65">{current.role}</p>
@@ -1501,24 +1501,24 @@ function Testimonials() {
 
 function Gallery() {
   return (
-    <section className="relative overflow-hidden bg-[#1B1411] px-6 py-32 text-[#FFF8EF] sm:px-8 lg:px-10">
+    <section className="relative overflow-hidden bg-[#1B1411] px-5 py-20 text-[#FFF8EF] sm:px-6 lg:px-8">
       <DarkBackgroundDecor />
 
-      <div className="relative z-10 mx-auto max-w-7xl">
-        <motion.div {...fadeUp} className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+      <div className="relative z-10 mx-auto max-w-6xl">
+        <motion.div {...fadeUp} className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div>
             <SectionLabel dark>Social Gallery</SectionLabel>
-            <h2 className="pb-2 font-serif text-4xl leading-[0.98] sm:text-6xl">Mint, blush, pearl, and gold.</h2>
+            <h2 className="pb-2 font-serif text-3xl leading-[0.98] sm:text-5xl">Mint, blush, pearl, and gold.</h2>
           </div>
           <button className="inline-flex items-center gap-2 text-sm text-[#B89A5E]">View Gallery <ArrowRight className="h-4 w-4" /></button>
         </motion.div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
           {gallery.map((img, index) => (
             <motion.div
               key={`${img}-${index}`}
               {...fadeUp}
               transition={{ ...fadeUp.transition, delay: index * 0.05 }}
-              className="group aspect-[4/5] overflow-hidden rounded-[2rem]"
+              className="group aspect-[4/5] overflow-hidden rounded-[1.35rem]"
             >
               <img
                 src={img}
@@ -1535,21 +1535,21 @@ function Gallery() {
 
 function Newsletter() {
   return (
-    <section className="relative overflow-hidden bg-[#F7E8DD] px-6 py-24 sm:px-8 lg:px-10">
+    <section className="relative overflow-hidden bg-[#F7E8DD] px-5 py-16 sm:px-6 lg:px-8">
       <SoftBackgroundDecor />
 
-      <motion.div {...fadeUp} className="relative z-10 mx-auto max-w-5xl overflow-hidden rounded-[3rem] border border-[#B89A5E]/25 bg-[#1B1411]/90 p-8 text-center text-[#FFF8EF] shadow-2xl shadow-black/10 backdrop-blur-xl sm:p-14">
-        <div className="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-full bg-[#B89A5E]/20 text-[#B89A5E]">
-          <Mail className="h-7 w-7" />
+      <motion.div {...fadeUp} className="relative z-10 mx-auto max-w-4xl overflow-hidden rounded-[2rem] border border-[#B89A5E]/25 bg-[#1B1411]/90 p-6 text-center text-[#FFF8EF] shadow-xl shadow-black/10 backdrop-blur-xl sm:p-10">
+        <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-[#B89A5E]/20 text-[#B89A5E]">
+          <Mail className="h-5 w-5" />
         </div>
         <p className="text-xs uppercase tracking-[0.35em] text-[#B89A5E]">Join the PEARLfectly Circle</p>
-        <h2 className="mt-4 font-serif text-4xl sm:text-6xl">Private launches, care rituals, and VIP offers.</h2>
-        <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-white/65">
+        <h2 className="mt-3 font-serif text-3xl sm:text-5xl">Private launches, care rituals, and VIP offers.</h2>
+        <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-white/65">
           Receive exclusive collection previews, bridal styling notes, and pearl care guidance from the PEARLfectly atelier.
         </p>
-        <form className="mx-auto mt-8 flex max-w-xl flex-col gap-3 rounded-full border border-white/15 bg-white/10 p-2 backdrop-blur sm:flex-row">
-          <input className="min-h-12 flex-1 bg-transparent px-5 text-sm text-white placeholder:text-white/50 focus:outline-none" placeholder="Enter your email address" type="email" aria-label="Email address" />
-          <button className="rounded-full bg-[#B89A5E] px-6 py-3 text-sm font-medium text-[#1B1411] transition hover:bg-[#FFF8EF]">Subscribe</button>
+        <form className="mx-auto mt-6 flex max-w-xl flex-col gap-2 rounded-full border border-white/15 bg-white/10 p-1.5 backdrop-blur sm:flex-row">
+          <input className="min-h-10 flex-1 bg-transparent px-4 text-sm text-white placeholder:text-white/50 focus:outline-none" placeholder="Enter your email address" type="email" aria-label="Email address" />
+          <button className="rounded-full bg-[#B89A5E] px-5 py-2.5 text-sm font-medium text-[#1B1411] transition hover:bg-[#FFF8EF]">Subscribe</button>
         </form>
       </motion.div>
     </section>
@@ -1560,26 +1560,26 @@ function FAQ() {
   const [open, setOpen] = useState(0);
 
   return (
-    <section id="faq" className="relative overflow-hidden bg-[#FFF8EF] px-6 py-24 sm:px-8 lg:px-10">
+    <section id="faq" className="relative overflow-hidden bg-[#FFF8EF] px-5 py-16 sm:px-6 lg:px-8">
       <SoftBackgroundDecor />
 
-      <div className="relative z-10 mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+      <div className="relative z-10 mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.8fr_1.2fr]">
         <motion.div {...fadeUp}>
           <SectionLabel>FAQ</SectionLabel>
-          <h2 className="font-serif text-4xl text-[#1B1411] sm:text-6xl">Questions before the sparkle?</h2>
-          <p className="mt-5 text-sm leading-7 text-[#1B1411]/70">A premium buying experience should feel clear, calm, and secure from discovery to delivery.</p>
+          <h2 className="font-serif text-3xl text-[#1B1411] sm:text-5xl">Questions before the sparkle?</h2>
+          <p className="mt-3 text-sm leading-6 text-[#1B1411]/70">A premium buying experience should feel clear, calm, and secure from discovery to delivery.</p>
         </motion.div>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {faqs.map((item, index) => (
-            <motion.div key={item.q} {...fadeUp} className="rounded-[1.5rem] border border-[#B89A5E]/20 bg-[#F7E8DD]/82 backdrop-blur-md">
-              <button onClick={() => setOpen(open === index ? -1 : index)} className="flex w-full items-center justify-between gap-4 p-6 text-left">
-                <span className="font-serif text-xl text-[#1B1411]">{item.q}</span>
+            <motion.div key={item.q} {...fadeUp} className="rounded-[1.25rem] border border-[#B89A5E]/20 bg-[#F7E8DD]/82 backdrop-blur-md">
+              <button onClick={() => setOpen(open === index ? -1 : index)} className="flex w-full items-center justify-between gap-4 p-5 text-left">
+                <span className="font-serif text-lg text-[#1B1411]">{item.q}</span>
                 <ChevronDown className={`h-5 w-5 text-[#B89A5E] transition ${open === index ? "rotate-180" : ""}`} />
               </button>
               <AnimatePresence>
                 {open === index && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                    <p className="px-6 pb-6 text-sm leading-7 text-[#1B1411]/70">{item.a}</p>
+                    <p className="px-5 pb-5 text-sm leading-6 text-[#1B1411]/70">{item.a}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -1593,31 +1593,31 @@ function FAQ() {
 
 function Footer() {
   return (
-    <footer id="contact" className="relative overflow-hidden bg-[#1B1411] px-6 py-16 text-[#FFF8EF] sm:px-8 lg:px-10">
+    <footer id="contact" className="relative overflow-hidden bg-[#1B1411] px-5 py-12 text-[#FFF8EF] sm:px-6 lg:px-8">
       <DarkBackgroundDecor />
 
-      <div className="relative z-10 mx-auto max-w-7xl">
-        <div className="grid gap-10 border-b border-white/10 pb-12 lg:grid-cols-[1.4fr_0.8fr_0.8fr_0.8fr]">
+      <div className="relative z-10 mx-auto max-w-6xl">
+        <div className="grid gap-8 border-b border-white/10 pb-9 lg:grid-cols-[1.4fr_0.8fr_0.8fr_0.8fr]">
           <div>
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="PEARLfectly logo" className="h-12 w-12 rounded-full object-cover shadow-inner" />
-              <span className="font-serif text-2xl tracking-[0.2em]">PEARLfectly PEARLS</span>
+              <img src="/logo.png" alt="PEARLfectly logo" className="h-10 w-10 rounded-full object-cover shadow-inner" />
+              <span className="font-serif text-xl tracking-[0.18em]">PEARLfectly PEARLS</span>
             </div>
-            <p className="mt-6 max-w-md text-sm leading-7 text-white/60">Modern pearl jewelry crafted for weddings, refined gifting, and heirloom collections. Designed with luminous restraint and atelier-level care.</p>
+            <p className="mt-4 max-w-md text-sm leading-6 text-white/60">Modern pearl jewelry crafted for weddings, refined gifting, and heirloom collections. Designed with luminous restraint and atelier-level care.</p>
           </div>
           {[
             ["Service", ["Contact", "Shipping", "Care Guide", "Returns"]],
             ["Visit", ["Private Consultation", "Instagram", "Pinterest", "Newsletter"]],
           ].map(([title, items]) => (
             <div key={title}>
-              <p className="font-serif text-xl text-[#B89A5E]">{title}</p>
-              <div className="mt-5 space-y-3">
+              <p className="font-serif text-lg text-[#B89A5E]">{title}</p>
+              <div className="mt-4 space-y-2.5">
                 {items.map((item) => <a key={item} href="#" className="block text-sm text-white/60 transition hover:text-[#B89A5E]">{item}</a>)}
               </div>
             </div>
           ))}
         </div>
-        <div className="flex flex-col justify-between gap-4 pt-8 text-xs uppercase tracking-[0.25em] text-white/40 sm:flex-row">
+        <div className="flex flex-col justify-between gap-4 pt-6 text-[11px] uppercase tracking-[0.22em] text-white/40 sm:flex-row">
           <p>© 2026 PEARLfectly Pearls. All rights reserved.</p>
           <p>Privacy · Terms · Accessibility</p>
         </div>
@@ -1762,7 +1762,7 @@ function SearchOverlay({ open, onClose, onQuickView, onAddToCart, products }) {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search pearls, earrings, gift sets, pink, ivory..."
-                className="flex-1 bg-transparent text-lg text-[#1B1411] outline-none placeholder:text-[#1B1411]/40"
+                className="flex-1 bg-transparent text-base text-[#1B1411] outline-none placeholder:text-[#1B1411]/40"
               />
               {query && (
                 <button
@@ -1850,11 +1850,11 @@ function SearchOverlay({ open, onClose, onQuickView, onAddToCart, products }) {
                               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#8A6A3F]">
                                 {product.category}
                               </p>
-                              <p className="mt-1 font-serif text-xl leading-tight text-[#1B1411]">
+                              <p className="mt-1 font-serif text-lg leading-tight text-[#1B1411]">
                                 {product.name}
                               </p>
                             </div>
-                            <p className="shrink-0 font-serif text-lg text-[#1B1411]">{formatPrice(product.price)}</p>
+                            <p className="shrink-0 font-serif text-base text-[#1B1411]">{formatPrice(product.price)}</p>
                           </div>
 
                           <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#1B1411]/60">
@@ -1929,7 +1929,7 @@ function SearchOverlay({ open, onClose, onQuickView, onAddToCart, products }) {
                   })}
                 </div>
               ) : (
-                <div className="rounded-[2rem] border border-[#B89A5E]/20 bg-[#F7E8DD] p-8 text-center">
+                <div className="rounded-[1.5rem] border border-[#B89A5E]/20 bg-[#F7E8DD] p-8 text-center">
                   <Search className="mx-auto mb-4 h-8 w-8 text-[#B89A5E]" />
                   <p className="font-serif text-2xl text-[#1B1411]">No products found</p>
                   <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#1B1411]/60">
@@ -2639,28 +2639,28 @@ function QuickViewModal({ product, onClose, onAddToCart, showReturnButton = fals
 
 function About() {
   return (
-    <section id="about" className="relative overflow-hidden bg-[#FFF8EF] px-6 py-24 sm:px-8 lg:px-10">
+    <section id="about" className="relative overflow-hidden bg-[#FFF8EF] px-5 py-16 sm:px-6 lg:px-8">
       <SoftBackgroundDecor />
 
-      <div className="relative z-10 mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+      <div className="relative z-10 mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
         <motion.div {...fadeUp}>
           <SectionLabel>About the Brand</SectionLabel>
-          <h2 className="font-serif text-4xl leading-tight text-[#1B1411] sm:text-6xl">Soft luxury, shaped by pearl light.</h2>
-          <p className="mt-6 text-sm leading-8 text-[#1B1411]/75">
+          <h2 className="font-serif text-3xl leading-tight text-[#1B1411] sm:text-5xl">Soft luxury, shaped by pearl light.</h2>
+          <p className="mt-4 text-sm leading-7 text-[#1B1411]/75">
             PEARLfectly Pearls is styled around soft mint boxes, blush velvet packaging, warm ivory surfaces, and classic black typography. The look is gentle, feminine, clean, and product-focused—perfect for pearl stud earrings and gift sets.
           </p>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
             {["Premium craftsmanship", "Trustworthy sourcing", "Artistic restraint", "Heirloom quality"].map((item) => (
-              <div key={item} className="rounded-2xl border border-[#B89A5E]/20 bg-[#F7E8DD]/82 p-4 text-sm text-[#1B1411] backdrop-blur-md">
-                <Sparkles className="mb-3 h-5 w-5 text-[#B89A5E]" /> {item}
+              <div key={item} className="rounded-xl border border-[#B89A5E]/20 bg-[#F7E8DD]/82 p-3.5 text-sm text-[#1B1411] backdrop-blur-md">
+                <Sparkles className="mb-2 h-4 w-4 text-[#B89A5E]" /> {item}
               </div>
             ))}
           </div>
         </motion.div>
-        <motion.div {...fadeUp} className="relative min-h-[560px]">
-          <img src="/weekly-pearl-box.png" alt="PEARLfectly pearl gift packaging and stud set" className="absolute right-0 top-0 h-[72%] w-[78%] rounded-[2.5rem] object-cover shadow-2xl" />
-          <div className="absolute bottom-0 left-0 w-[65%] rounded-[2rem] border border-[#B89A5E]/25 bg-[#FFF8EF]/82 p-6 shadow-2xl backdrop-blur-xl">
-            <p className="font-serif text-3xl text-[#1B1411]">Pearls chosen for luster, symmetry, surface, and timeless character.</p>
+        <motion.div {...fadeUp} className="relative min-h-[430px]">
+          <img src="/weekly-pearl-box.png" alt="PEARLfectly pearl gift packaging and stud set" className="absolute right-0 top-0 h-[70%] w-[76%] rounded-[1.75rem] object-cover shadow-xl" />
+          <div className="absolute bottom-0 left-0 w-[62%] rounded-[1.5rem] border border-[#B89A5E]/25 bg-[#FFF8EF]/82 p-5 shadow-xl backdrop-blur-xl">
+            <p className="font-serif text-2xl text-[#1B1411]">Pearls chosen for luster, symmetry, surface, and timeless character.</p>
           </div>
         </motion.div>
       </div>
