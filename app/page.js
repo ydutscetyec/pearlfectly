@@ -323,14 +323,14 @@ function LuxuryButton({ children, variant = "primary", className = "", onClick, 
   );
 }
 
-function Navbar({ onSearch, onCart, cartCount = 0 }) {
+function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0 }) {
   const [open, setOpen] = useState(false);
   const [mega, setMega] = useState(false);
 
   const navLinks = [
-    { label: "SHOP", href: "#shop", hasDropdown: true },
-    { label: "THE PEARLFECTLY EXPERIENCE", href: "#collections" },
-    { label: "ABOUT", href: "#about" },
+    { label: "SHOP", href: "/#shop", hasDropdown: true },
+    { label: "THE PEARLFECTLY EXPERIENCE", href: "/#collections" },
+    { label: "ABOUT", href: "/#about" },
   ];
 
   const shopMegaMenu = [
@@ -353,6 +353,7 @@ function Navbar({ onSearch, onCart, cartCount = 0 }) {
   const lastScrollY = useRef(0);
   const hiddenAtScrollY = useRef(null);
   const lastRevealScrollY = useRef(null);
+  const megaCloseTimeout = useRef(null);
 
   useEffect(() => {
     const hideAfterScrollY = 24;
@@ -396,6 +397,10 @@ function Navbar({ onSearch, onCart, cartCount = 0 }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [open, mega]);
 
+  useEffect(() => {
+    return () => window.clearTimeout(megaCloseTimeout.current);
+  }, []);
+
   const showNavFromFloatingButton = () => {
     const currentScrollY = window.scrollY;
 
@@ -407,19 +412,41 @@ function Navbar({ onSearch, onCart, cartCount = 0 }) {
     lastScrollY.current = currentScrollY;
   };
 
+  const openMegaMenu = () => {
+    window.clearTimeout(megaCloseTimeout.current);
+    setMega(true);
+    setIsNavVisible(true);
+  };
+
+  const closeMegaMenu = () => {
+    window.clearTimeout(megaCloseTimeout.current);
+    megaCloseTimeout.current = window.setTimeout(() => {
+      setMega(false);
+    }, 180);
+  };
+
   const navIsSolid = isScrolled || mega || open;
 
   const handleNavClick = (event, href) => {
-    if (!href.startsWith("#")) return;
+    const isSamePageAnchor = href.startsWith("#");
+    const isHomeAnchor = href.startsWith("/#");
+    const targetHash = isHomeAnchor ? href.replace("/", "") : href;
 
-    event.preventDefault();
+    if (!isSamePageAnchor && !isHomeAnchor) return;
+
     setMega(false);
     setOpen(false);
 
-    const target = document.querySelector(href);
+    if (isHomeAnchor && window.location.pathname !== "/") {
+      return;
+    }
+
+    event.preventDefault();
+
+    const target = document.querySelector(targetHash);
     if (!target) return;
 
-    setIsNavVisible(href === "#home");
+    setIsNavVisible(targetHash === "#home");
 
     const headerHeight = document.querySelector("header")?.offsetHeight ?? 180;
     const top = target.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
@@ -429,9 +456,9 @@ function Navbar({ onSearch, onCart, cartCount = 0 }) {
       behavior: "smooth",
     });
 
-    window.history.pushState(null, "", href);
+    window.history.pushState(null, "", targetHash);
 
-    if (href !== "#home") {
+    if (targetHash !== "#home") {
       setIsScrolled(true);
     } else {
       setIsScrolled(false);
@@ -470,7 +497,7 @@ function Navbar({ onSearch, onCart, cartCount = 0 }) {
       </AnimatePresence>
 
       <header
-        className={`group/nav fixed inset-x-0 top-0 z-50 transform overflow-hidden border-b transition-all duration-300 ease-in-out ${
+        className={`group/nav fixed inset-x-0 top-0 z-50 transform overflow-visible border-b transition-all duration-300 ease-in-out ${
           isNavVisible || open || mega ? "translate-y-0" : "-translate-y-full"
         } before:pointer-events-none before:absolute before:inset-0 before:z-0 before:transition-opacity before:duration-300 after:pointer-events-none after:absolute after:inset-x-10 after:bottom-0 after:z-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[#B89A5E]/45 after:to-transparent after:transition-opacity after:duration-300 ${
           navIsSolid
@@ -484,7 +511,7 @@ function Navbar({ onSearch, onCart, cartCount = 0 }) {
             <Search className="h-6 w-6 stroke-[1.6]" />
           </button>
 
-          <a href="#home" onClick={(event) => handleNavClick(event, "#home")} className="flex flex-col items-center text-center">
+          <a href="/#home" onClick={(event) => handleNavClick(event, "/#home")} className="flex flex-col items-center text-center">
             <img
               src="/logo.png"
               alt="PEARLfectly logo"
@@ -504,6 +531,19 @@ function Navbar({ onSearch, onCart, cartCount = 0 }) {
             </button>
             <button className={iconButton} aria-label="Messages">
               <MessageCircle className="h-6 w-6 stroke-[1.6]" />
+            </button>
+            <button
+              type="button"
+              onClick={onWishlist}
+              className={`relative ${iconButton}`}
+              aria-label="Open wishlist"
+            >
+              <Heart className={`h-6 w-6 stroke-[1.6] ${wishlistCount > 0 ? "fill-current" : ""}`} />
+              {wishlistCount > 0 && (
+                <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#F4C6D3] px-1 text-[10px] font-semibold text-[#1B1411] shadow-sm">
+                  {wishlistCount}
+                </span>
+              )}
             </button>
             <button
               data-cart-target="true"
@@ -535,13 +575,14 @@ function Navbar({ onSearch, onCart, cartCount = 0 }) {
               <div
                 key={link.label}
                 className="relative"
-                onMouseEnter={() => isShop && setMega(true)}
-                onMouseLeave={() => isShop && setMega(false)}
+                onMouseEnter={() => isShop && openMegaMenu()}
+                onMouseLeave={() => isShop && closeMegaMenu()}
+                onFocus={() => isShop && openMegaMenu()}
               >
                 <a
                   href={link.href}
                   onClick={(event) => handleNavClick(event, link.href)}
-                  className={`flex items-center gap-2 whitespace-nowrap text-sm font-semibold uppercase tracking-[0.22em] ${navText}`}
+                  className={`flex items-center gap-2 whitespace-nowrap text-[15px] font-semibold uppercase tracking-[0.22em] ${navText}`}
                 >
                   {link.label}
                   {link.hasDropdown && <ChevronDown className="h-4 w-4 stroke-[1.5]" />}
@@ -549,12 +590,21 @@ function Navbar({ onSearch, onCart, cartCount = 0 }) {
 
                 <AnimatePresence>
                   {isShop && mega && (
-                    <motion.div
+                    <>
+                      <div
+                        onMouseEnter={openMegaMenu}
+                        onMouseLeave={closeMegaMenu}
+                        className="absolute left-1/2 top-7 z-[130] h-8 w-[1020px] max-w-[calc(100vw-3rem)] -translate-x-1/2"
+                        aria-hidden="true"
+                      />
+                      <motion.div
                       initial={{ opacity: 0, y: 12, scale: 0.98 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 12, scale: 0.98 }}
                       transition={{ duration: 0.22, ease: "easeOut" }}
-                      className="absolute left-1/2 top-11 z-[80] w-[960px] max-w-[calc(100vw-3rem)] -translate-x-1/2 overflow-hidden rounded-[2rem] border border-[#D8C7A3]/40 bg-[#FFF8EF]/95 px-12 py-10 shadow-2xl shadow-black/10 backdrop-blur-xl"
+                      onMouseEnter={openMegaMenu}
+                      onMouseLeave={closeMegaMenu}
+                      className="absolute left-1/2 top-10 z-[140] w-[1020px] max-w-[calc(100vw-3rem)] -translate-x-1/2 overflow-hidden rounded-[2rem] border border-[#D8C7A3]/45 bg-[#FFF8EF]/97 px-12 py-10 shadow-2xl shadow-black/14 backdrop-blur-2xl"
                     >
                       <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-[#CFE9DF]/55 blur-3xl" />
                       <div className="pointer-events-none absolute -bottom-20 -left-16 h-40 w-40 rounded-full bg-[#F4C6D3]/45 blur-3xl" />
@@ -562,7 +612,7 @@ function Navbar({ onSearch, onCart, cartCount = 0 }) {
                       <div className="relative grid gap-10 md:grid-cols-[1fr_1fr_1fr_0.9fr]">
                         {shopMegaMenu.map((group) => (
                           <div key={group.title}>
-                            <h3 className="mb-5 whitespace-nowrap text-[12px] font-bold uppercase tracking-[0.24em] text-[#8A6A3F]">
+                            <h3 className="mb-5 whitespace-nowrap text-[13px] font-bold uppercase tracking-[0.24em] text-[#8A6A3F]">
                               {group.title}
                             </h3>
 
@@ -570,9 +620,9 @@ function Navbar({ onSearch, onCart, cartCount = 0 }) {
                               {group.items.map((item) => (
                                 <a
                                   key={item}
-                                  href="#shop"
-                                  onClick={(event) => handleNavClick(event, "#shop")}
-                                  className="block rounded-full px-3 py-2 text-[15px] font-medium capitalize text-[#4A3832]/80 transition duration-300 hover:bg-[#F3E7D6]/70 hover:text-[#B89A5E]"
+                                  href="/#shop"
+                                  onClick={(event) => handleNavClick(event, "/#shop")}
+                                  className="block rounded-full px-4 py-2.5 text-[17px] font-medium capitalize text-[#4A3832]/82 transition duration-300 hover:bg-[#F3E7D6]/80 hover:text-[#B89A5E]"
                                 >
                                   {item}
                                 </a>
@@ -582,22 +632,23 @@ function Navbar({ onSearch, onCart, cartCount = 0 }) {
                         ))}
 
                         <div className="rounded-[1.5rem] border border-[#B89A5E]/25 bg-[#FFFDF7]/80 p-5 shadow-sm">
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#B89A5E]">
+                          <p className="text-[12px] font-semibold uppercase tracking-[0.24em] text-[#B89A5E]">
                             Gift-ready
                           </p>
-                          <p className="mt-3 font-serif text-2xl leading-tight text-[#1B1411]">
+                          <p className="mt-3 font-serif text-[1.7rem] leading-tight text-[#1B1411]">
                             Pearl boxes made for soft luxury gifting.
                           </p>
                           <a
-                            href="#shop"
-                            onClick={(event) => handleNavClick(event, "#shop")}
-                            className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#8A6A3F] hover:text-[#B89A5E]"
+                            href="/#shop"
+                            onClick={(event) => handleNavClick(event, "/#shop")}
+                            className="mt-5 inline-flex items-center gap-2 text-base font-semibold text-[#8A6A3F] hover:text-[#B89A5E]"
                           >
                             Shop gift sets <ArrowRight className="h-4 w-4" />
                           </a>
                         </div>
                       </div>
                     </motion.div>
+                    </>
                   )}
                 </AnimatePresence>
               </div>
@@ -648,12 +699,23 @@ function Navbar({ onSearch, onCart, cartCount = 0 }) {
                 ))}
               </div>
 
-              <div className="mt-8 grid grid-cols-3 gap-3">
+              <div className="mt-8 grid grid-cols-5 gap-3">
                 <button onClick={onSearch} className="grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Search">
                   <Search className="h-5 w-5" />
                 </button>
                 <button className="grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Account">
                   <UserRound className="h-5 w-5" />
+                </button>
+                <button className="grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Messages">
+                  <MessageCircle className="h-5 w-5" />
+                </button>
+                <button onClick={onWishlist} className="relative grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Open wishlist">
+                  <Heart className={`h-5 w-5 ${wishlistCount > 0 ? "fill-[#1B1411]" : ""}`} />
+                  {wishlistCount > 0 && (
+                    <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#F4C6D3] px-1 text-[10px] font-semibold text-[#1B1411]">
+                      {wishlistCount}
+                    </span>
+                  )}
                 </button>
                 <button data-cart-target="true" onClick={onCart} className="relative grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Open cart">
                   <ShoppingBag className="h-5 w-5" />
@@ -707,8 +769,8 @@ function Hero() {
               </p>
 
               <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-                <LuxuryButton href="#shop" variant="primary">Shop Collection</LuxuryButton>
-                <LuxuryButton href="#shop" variant="outline" className="text-[#1B1411]">
+                <LuxuryButton href="/#shop" variant="primary">Shop Collection</LuxuryButton>
+                <LuxuryButton href="/#shop" variant="outline" className="text-[#1B1411]">
                   Find Your Pearl Size
                 </LuxuryButton>
               </div>
@@ -843,13 +905,13 @@ function FeaturedCollections() {
     </section>
   );
 }
-function ProductCard({ product, onQuickView, addToCart }) {
-  const [liked, setLiked] = useState(false);
+function ProductCard({ product, onQuickView, addToCart, isWishlisted = false, onToggleWishlist }) {
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   const [flyItem, setFlyItem] = useState(null);
   const stock = Number(product.stock ?? 0);
   const isOutOfStock = stock <= 0;
+  const liked = isWishlisted;
 
   const productImageRef = useRef(null);
   const addedTimeoutRef = useRef(null);
@@ -985,14 +1047,21 @@ function ProductCard({ product, onQuickView, addToCart }) {
             {product.tag}
           </div>
 
-          <button
+          <motion.button
             type="button"
-            onClick={() => setLiked(!liked)}
-            className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-[#FFF8EF]/90 text-[#1B1411] backdrop-blur transition hover:bg-[#B89A5E]"
-            aria-label="Add to wishlist"
+            whileTap={{ scale: 0.88 }}
+            animate={{ scale: liked ? 1.08 : 1 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            onClick={() => onToggleWishlist?.(product)}
+            className={`absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full backdrop-blur transition ${
+              liked
+                ? "bg-[#F4C6D3] text-[#1B1411]"
+                : "bg-[#FFF8EF]/90 text-[#1B1411] hover:bg-[#B89A5E]"
+            }`}
+            aria-label={liked ? "Remove from wishlist" : "Add to wishlist"}
           >
             <Heart className={`h-5 w-5 ${liked ? "fill-[#1B1411]" : ""}`} />
-          </button>
+          </motion.button>
 
           <div className="absolute bottom-4 left-4 flex translate-y-4 opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
             <button
@@ -1094,7 +1163,7 @@ function ProductCard({ product, onQuickView, addToCart }) {
   );
 }
 
-function ProductShowcase({ products, onQuickView, addToCart }) {
+function ProductShowcase({ products, onQuickView, addToCart, isWishlisted, onToggleWishlist }) {
   const [activeFilter, setActiveFilter] = useState("All");
   const displayProducts = products;
   const filters = ["All", ...Array.from(new Set(displayProducts.map((product) => product.category).filter(Boolean)))];
@@ -1143,6 +1212,8 @@ function ProductShowcase({ products, onQuickView, addToCart }) {
                 product={product}
                 onQuickView={onQuickView}
                 addToCart={addToCart}
+                isWishlisted={isWishlisted?.(product)}
+                onToggleWishlist={onToggleWishlist}
               />
             ))
           ) : (
@@ -1207,7 +1278,7 @@ function Craftsmanship() {
   );
 }
 
-function ProductDetailLayout({ products, addToCart }) {
+function ProductDetailLayout({ products, addToCart, isWishlisted, onToggleWishlist }) {
   const [variant, setVariant] = useState("Gold-tone Backing");
   const [quantity, setQuantity] = useState(1);
   const displayProducts = products;
@@ -1217,6 +1288,7 @@ function ProductDetailLayout({ products, addToCart }) {
     return null;
   }
   const variants = ["Gold-tone Backing", "Silver-tone Backing", "Rose-gold Tone"];
+  const productIsWishlisted = isWishlisted?.(product);
 
   return (
     <section id="product-details" className="relative scroll-mt-40 overflow-hidden bg-[#F7E8DD] px-6 py-24 sm:px-8 lg:px-10">
@@ -1297,8 +1369,15 @@ function ProductDetailLayout({ products, addToCart }) {
                 >
                   Buy Now
                 </button>
-                <button className="grid h-12 w-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411] hover:bg-[#CFE9DF]/70">
-                  <Heart className="h-5 w-5" />
+                <button
+                  type="button"
+                  onClick={() => onToggleWishlist?.(product)}
+                  className={`grid h-12 w-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411] transition ${
+                    productIsWishlisted ? "bg-[#F4C6D3]" : "hover:bg-[#CFE9DF]/70"
+                  }`}
+                  aria-label={productIsWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                >
+                  <Heart className={`h-5 w-5 ${productIsWishlisted ? "fill-[#1B1411]" : ""}`} />
                 </button>
               </div>
             </div>
@@ -1866,6 +1945,126 @@ function SearchOverlay({ open, onClose, onQuickView, onAddToCart, products }) {
   );
 }
 
+
+function WishlistDrawer({
+  open,
+  onClose,
+  wishlist,
+  onRemoveItem,
+  onQuickView,
+  onAddToCart,
+}) {
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.aside
+          initial={{ x: "100%" }}
+          animate={{ x: 0 }}
+          exit={{ x: "100%" }}
+          transition={{ type: "spring", damping: 28, stiffness: 220 }}
+          className="fixed right-0 top-0 z-[75] flex h-full w-full max-w-md flex-col border-l border-[#B89A5E]/25 bg-[#FFF8EF]/96 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl"
+        >
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#8A6A3F]">
+                Saved Pieces
+              </p>
+              <h2 className="mt-2 font-serif text-3xl text-[#1B1411]">
+                Wishlist
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="grid h-10 w-10 place-items-center rounded-full bg-[#F7E8DD] text-[#1B1411] transition hover:bg-[#1B1411] hover:text-[#FFF8EF]"
+              aria-label="Close wishlist"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {wishlist.length === 0 ? (
+            <div className="grid flex-1 place-items-center rounded-[2rem] border border-[#B89A5E]/20 bg-[#FFFDF7]/76 p-8 text-center">
+              <div>
+                <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-full bg-[#F4C6D3]/65 text-[#1B1411]">
+                  <Heart className="h-7 w-7" />
+                </div>
+                <p className="font-serif text-2xl text-[#1B1411]">
+                  Your wishlist is empty.
+                </p>
+                <p className="mt-3 text-sm leading-6 text-[#1B1411]/60">
+                  Tap the heart on a product to save it here.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
+              {wishlist.map((product) => (
+                <motion.div
+                  key={product.id}
+                  layout
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  className="rounded-[1.75rem] border border-[#B89A5E]/20 bg-[#FFFDF7]/82 p-4 shadow-lg shadow-black/5"
+                >
+                  <div className="flex gap-4">
+                    <img
+                      src={product.image || "/weekly-pearl-box.png"}
+                      alt={product.name}
+                      className="h-24 w-24 rounded-2xl object-cover"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-serif text-xl text-[#1B1411]">
+                        {product.name}
+                      </p>
+                      <p className="mt-1 text-xs uppercase tracking-[0.22em] text-[#8A6A3F]">
+                        {product.category || "Product"}
+                      </p>
+                      <p className="mt-2 font-serif text-xl text-[#1B1411]">
+                        {formatPrice(product.price)}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onRemoveItem(product.id)}
+                      className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#F4C6D3]/65 text-[#1B1411] transition hover:bg-[#1B1411] hover:text-[#FFF8EF]"
+                      aria-label={`Remove ${product.name} from wishlist`}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onQuickView(product);
+                        onClose();
+                      }}
+                      className="rounded-full border border-[#B89A5E]/35 px-4 py-2.5 text-sm font-semibold text-[#4A3832] transition hover:bg-[#CFE9DF]/70"
+                    >
+                      Quick View
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onAddToCart(product, 1)}
+                      className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1B1411] px-4 py-2.5 text-sm font-semibold text-[#FFF8EF] transition hover:bg-[#B89A5E] hover:text-[#1B1411]"
+                    >
+                      <ShoppingBag className="h-4 w-4" />
+                      Add to Cart
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </motion.aside>
+      )}
+    </AnimatePresence>
+  );
+}
+
 function CartDrawer({
   open,
   onClose,
@@ -1877,14 +2076,54 @@ function CartDrawer({
   isCheckingOut,
   checkoutNotice,
 }) {
-
   const [removeQuantities, setRemoveQuantities] = useState({});
   const [removingProductId, setRemovingProductId] = useState(null);
+  const [selectedProductIds, setSelectedProductIds] = useState([]);
+  const previousCartIds = useRef([]);
+
+  useEffect(() => {
+    const cartIds = cart.map((product) => String(product.id));
+    const previousIds = previousCartIds.current;
+    const addedIds = cartIds.filter((id) => !previousIds.includes(id));
+
+    setSelectedProductIds((prev) => {
+      const stillInCart = prev.filter((id) => cartIds.includes(id));
+      return Array.from(new Set([...stillInCart, ...addedIds]));
+    });
+
+    previousCartIds.current = cartIds;
+  }, [cart]);
+
+  const selectedCart = cart.filter((product) =>
+    selectedProductIds.includes(String(product.id))
+  );
+
+  const selectedItemCount = selectedCart.reduce(
+    (sum, product) => sum + (product.cartQuantity ?? 1),
+    0
+  );
+
+  const selectedSubtotal = selectedCart.reduce(
+    (sum, product) => sum + product.price * (product.cartQuantity ?? 1),
+    0
+  );
 
   const subtotal = cart.reduce(
     (sum, product) => sum + product.price * (product.cartQuantity ?? 1),
     0
   );
+
+  const selectedItemLabel = selectedItemCount === 1 ? "item" : "items";
+  const itemLabel = cartCount === 1 ? "item" : "items";
+  const toggleSelectProduct = (productId) => {
+    const id = String(productId);
+
+    setSelectedProductIds((prev) =>
+      prev.includes(id)
+        ? prev.filter((selectedId) => selectedId !== id)
+        : [...prev, id]
+    );
+  };
 
   const getRemoveQuantity = (product) => {
     const maxQuantity = product.cartQuantity ?? 1;
@@ -1923,7 +2162,10 @@ function CartDrawer({
     }, 520);
   };
 
-  const itemLabel = cartCount === 1 ? "item" : "items";
+  const handleCheckoutSelected = () => {
+    if (selectedCart.length === 0 || isCheckingOut) return;
+    onCheckout(selectedCart);
+  };
 
   return (
     <AnimatePresence>
@@ -1932,48 +2174,75 @@ function CartDrawer({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-[70] bg-[#1B1411]/60 backdrop-blur-md"
         >
           <motion.aside
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 28, stiffness: 220 }}
-            className="ml-auto flex h-full w-full max-w-md flex-col bg-[#FFF8EF] p-6"
+            transition={{ type: "spring", damping: 30, stiffness: 230 }}
+            className="relative ml-auto flex h-full w-full max-w-[540px] flex-col overflow-hidden border-l border-[#D8C7A3]/45 bg-[#FFF9F1] shadow-[0_28px_90px_rgba(27,20,17,0.32)]"
           >
-            <div className="flex items-center justify-between border-b border-[#B89A5E]/20 pb-5">
-              <div>
-                <h3 className="font-serif text-3xl text-[#1B1411]">
-                  Your Cart
-                </h3>
-                <p className="mt-1 text-sm text-[#1B1411]/55">
-                  {cartCount} {itemLabel} in cart
-                </p>
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_85%_12%,rgba(255,255,255,0.92),transparent_18%),linear-gradient(145deg,rgba(255,251,246,0.98),rgba(255,248,239,0.95),rgba(247,232,221,0.88))]" />
+            <div className="pointer-events-none absolute -right-16 top-16 h-44 w-44 rounded-full bg-white/55 blur-2xl" />
+            <div className="pointer-events-none absolute -left-16 top-52 h-40 w-40 rounded-full bg-[#CFE9DF]/22 blur-3xl" />
+            <div className="pointer-events-none absolute right-[-4rem] bottom-24 h-44 w-44 rounded-full bg-[#F4C6D3]/18 blur-3xl" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#B89A5E]/50 to-transparent" />
+
+            <div className="relative z-10 border-b border-[#D8C7A3]/28 px-7 pb-5 pt-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#D8C7A3]/65 bg-white/72 px-3.5 py-1.5 shadow-sm shadow-[#B89A5E]/10 backdrop-blur-sm">
+                    <Gem className="h-3.5 w-3.5 text-[#8A6A3F]" />
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#8A6A3F]">
+                      Pearl Cart Atelier
+                    </span>
+                  </div>
+
+                  <h3 className="font-serif text-[2.65rem] leading-[0.92] tracking-[-0.02em] text-[#1B1411] sm:text-[3rem]">
+                    Your Cart
+                  </h3>
+
+                  <p className="mt-2 max-w-sm text-sm leading-6 text-[#4A3832]/62">
+                    Review your selected pearl pieces before secure checkout.
+                  </p>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-[12px] font-medium text-[#8A6A3F]/90">
+                    <span>{cartCount} {itemLabel}</span>
+                    <span className="h-1 w-1 rounded-full bg-[#B89A5E]/70" />
+                    <span>{selectedItemCount} selected</span>
+                    <span className="h-1 w-1 rounded-full bg-[#B89A5E]/70" />
+                    <span>{formatPrice(selectedSubtotal)}</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={onClose}
+                  className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[#D8C7A3]/60 bg-white/78 text-[#1B1411] shadow-[0_10px_24px_rgba(184,154,94,0.12)] transition hover:-translate-y-0.5 hover:bg-[#1B1411] hover:text-[#FFF8EF]"
+                  aria-label="Close cart"
+                >
+                  <X className="h-5 w-5" />
+                </button>
               </div>
 
-              <button
-                onClick={onClose}
-                className="rounded-full p-2 hover:bg-black/5"
-                aria-label="Close cart"
-              >
-                <X className="text-[#1B1411]" />
-              </button>
             </div>
 
-            <div className="flex-1 space-y-4 overflow-y-auto py-6">
+            <div className="relative z-10 flex-1 space-y-4 overflow-y-auto px-7 py-5">
               {cart.length === 0 ? (
-                <div className="rounded-[2rem] border border-[#B89A5E]/20 bg-[#F7E8DD] p-6 text-center">
-                  <ShoppingBag className="mx-auto mb-4 h-8 w-8 text-[#B89A5E]" />
-                  <p className="font-serif text-2xl text-[#1B1411]">
+                <div className="rounded-[2rem] border border-[#E2D2B2]/55 bg-white/72 p-9 text-center shadow-[0_18px_40px_rgba(27,20,17,0.06)] backdrop-blur-xl">
+                  <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full border border-[#E6DABD] bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,0.98),rgba(247,232,221,0.95),rgba(232,216,195,0.88))] text-[#8A6A3F] shadow-[0_8px_22px_rgba(184,154,94,0.18)]">
+                    <ShoppingBag className="h-7 w-7" />
+                  </div>
+                  <p className="font-serif text-3xl text-[#1B1411]">
                     Your cart is empty
                   </p>
-                  <p className="mt-2 text-sm leading-6 text-[#1B1411]/65">
-                    Add a pearl piece from the collection to preview checkout.
+                  <p className="mx-auto mt-2 max-w-xs text-sm leading-6 text-[#4A3832]/65">
+                    Add a luminous pearl piece from the collection to begin your curated checkout.
                   </p>
                   <a
-                    href="#shop"
+                    href="/#shop"
                     onClick={onClose}
-                    className="mt-5 inline-flex rounded-full bg-[#1B1411] px-5 py-3 text-sm font-medium text-[#FFF8EF] hover:bg-[#B89A5E] hover:text-[#1B1411]"
+                    className="mt-6 inline-flex rounded-full bg-[#1B1411] px-6 py-3 text-sm font-medium text-[#FFF8EF] shadow-lg shadow-black/10 transition hover:bg-[#B89A5E] hover:text-[#1B1411]"
                   >
                     Shop Collection
                   </a>
@@ -1983,6 +2252,8 @@ function CartDrawer({
                   {cart.map((product) => {
                     const cartQuantity = product.cartQuantity ?? 1;
                     const removeQuantity = getRemoveQuantity(product);
+                    const isSelected = selectedProductIds.includes(String(product.id));
+                    const lineTotal = product.price * cartQuantity;
 
                     return (
                       <motion.div
@@ -1999,131 +2270,169 @@ function CartDrawer({
                                 boxShadow: "0 22px 60px rgba(184, 154, 94, 0.22)",
                               }
                             : {
-                                opacity: 1,
+                                opacity: isSelected ? 1 : 0.78,
                                 y: 0,
                                 scale: 1,
                                 filter: "brightness(1)",
-                                boxShadow: "0 0 0 rgba(184, 154, 94, 0)",
+                                boxShadow: isSelected
+                                  ? "0 18px 44px rgba(184, 154, 94, 0.13)"
+                                  : "0 8px 24px rgba(27, 20, 17, 0.04)",
                               }
                         }
                         exit={{
                           opacity: 0,
-                          y: -18,
+                          x: 28,
                           scale: 0.96,
                           filter: "blur(2px)",
                         }}
-                        transition={{
-                          duration: 0.52,
-                          ease: [0.22, 1, 0.36, 1],
-                        }}
-                        className="relative overflow-hidden rounded-2xl bg-[#F7E8DD] p-3"
+                        transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
+                        className={`group relative overflow-hidden rounded-[1.75rem] border p-4 backdrop-blur-xl transition ${
+                          isSelected
+                            ? "border-[#D9C7A5]/72 bg-[linear-gradient(145deg,rgba(255,255,255,0.88),rgba(255,248,239,0.96),rgba(247,232,221,0.84))]"
+                            : "border-[#E8DCC7]/55 bg-white/54"
+                        }`}
                       >
+                        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.62),transparent_30%)]" />
+                        <div
+                          className={`pointer-events-none absolute inset-y-4 left-0 w-[4px] rounded-r-full transition ${
+                            isSelected ? "bg-[#B89A5E]" : "bg-[#E5D9C5]"
+                          }`}
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => toggleSelectProduct(product.id)}
+                          aria-label={`${isSelected ? "Deselect" : "Select"} ${product.name} for checkout`}
+                          className={`absolute left-3 top-3 z-20 grid h-5 w-5 place-items-center rounded-full border text-[9px] font-bold shadow-[0_6px_14px_rgba(27,20,17,0.12)] transition ${
+                            isSelected
+                              ? "border-[#1B1411] bg-[#1B1411] text-[#FFF8EF]"
+                              : "border-[#B89A5E]/45 bg-white/90 text-transparent hover:border-[#1B1411]"
+                          }`}
+                        >
+                          ✓
+                        </button>
+
                         <AnimatePresence>
                           {removingProductId === product.id && (
                             <motion.div
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
-                              className="pointer-events-none absolute inset-0 z-10 rounded-2xl"
+                              className="pointer-events-none absolute inset-0 z-10 rounded-[1.75rem]"
                             >
                               <motion.div
                                 initial={{ x: "-120%" }}
                                 animate={{ x: "260%" }}
                                 transition={{ duration: 0.52, ease: "easeInOut" }}
-                                className="absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-[#FFF8EF]/75 to-transparent"
+                                className="absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-[#FFF8EF]/85 to-transparent"
                               />
-                              <div className="absolute inset-0 rounded-2xl border border-[#B89A5E]/35" />
+                              <div className="absolute inset-0 rounded-[1.75rem] border border-[#B89A5E]/35" />
                             </motion.div>
                           )}
                         </AnimatePresence>
 
-                        <div className="flex gap-4">
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            className="h-24 w-24 rounded-xl object-cover"
-                          />
+                        <div className="relative flex gap-3.5 pl-2">
+                          <div className="relative shrink-0 rounded-[1.35rem] bg-[linear-gradient(145deg,rgba(255,255,255,0.95),rgba(247,232,221,0.9))] p-1.5 shadow-[0_10px_24px_rgba(27,20,17,0.07)]">
+                            <div className="relative h-[84px] w-[84px] overflow-hidden rounded-[1rem] bg-[#F7E8DD] ring-1 ring-white/70">
+                              <img
+                                src={product.image}
+                                alt={product.name}
+                                className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                              />
+                              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),transparent_35%,rgba(27,20,17,0.02))]" />
+                            </div>
+                          </div>
 
                           <div className="min-w-0 flex-1">
-                            <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0">
-                                <p className="font-serif text-xl leading-tight text-[#1B1411]">
+                                <p className="truncate font-serif text-[1.55rem] leading-tight text-[#1B1411]">
                                   {product.name}
                                 </p>
-                                <p className="mt-1 text-sm text-[#1B1411]/60">
-                                  {product.metal}
+                                <p className="mt-1 truncate text-sm text-[#4A3832]/58">
+                                  {product.metal || product.category}
                                 </p>
                               </div>
 
-                              <motion.span
-                                key={cartQuantity}
-                                initial={{ opacity: 0, y: -6, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                transition={{ duration: 0.18 }}
-                                className="shrink-0 rounded-full border border-[#B89A5E]/25 bg-[#FFF8EF]/85 px-3 py-1 text-xs font-semibold text-[#4A3832]"
-                              >
-                                Quantity: {cartQuantity}
-                              </motion.span>
+                              <span className="shrink-0 rounded-full border border-[#E1D2B7]/75 bg-white/70 px-3 py-1 text-xs font-semibold text-[#4A3832] shadow-sm">
+                                Qty {cartQuantity}
+                              </span>
                             </div>
 
-                            <motion.p
-                              key={product.price * cartQuantity}
-                              initial={{ opacity: 0, y: 4 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ duration: 0.18 }}
-                              className="mt-3 font-medium text-[#1B1411]"
-                            >
-                              {formatPrice(product.price * cartQuantity)}
-                            </motion.p>
+                            <div className="mt-3 flex items-end justify-between gap-3">
+                              <motion.p
+                                key={lineTotal}
+                                initial={{ opacity: 0, y: 4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.18 }}
+                                className="font-serif text-[1.75rem] leading-none text-[#1B1411]"
+                              >
+                                {formatPrice(lineTotal)}
+                              </motion.p>
+
+                              <span
+                                className={`rounded-full border px-3 py-1 text-[10px] font-semibold shadow-sm ${
+                                  isSelected
+                                    ? "border-[#CFE9DF]/60 bg-[#E3F2ED] text-[#1B1411]"
+                                    : "border-[#E8DCC7]/80 bg-white/60 text-[#4A3832]/50"
+                                }`}
+                              >
+                                {isSelected ? "Selected" : "Not selected"}
+                              </span>
+                            </div>
                           </div>
                         </div>
 
-                        <div className="mt-4 flex items-center justify-between gap-3 border-t border-[#B89A5E]/15 pt-3">
-                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8A6A3F]">
-                            Remove
-                          </p>
+                        <div className="relative mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#DCCCAE]/40 pt-3">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveQuantity(product)}
+                            disabled={removingProductId === product.id}
+                            className="rounded-full border border-[#E6DABD]/80 bg-white/56 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#8A6A3F] shadow-sm transition hover:border-[#B89A5E] hover:text-[#1B1411] disabled:cursor-wait disabled:opacity-70"
+                          >
+                            {cartQuantity > 1
+                              ? `Remove ${removeQuantity}`
+                              : removingProductId === product.id
+                              ? "Removing..."
+                              : "Remove"}
+                          </button>
 
-                          <div className="flex items-center gap-2">
-                            <div className="flex h-9 items-center rounded-full border border-[#B89A5E]/30 bg-[#FFF8EF]/80">
-                              <button
-                                type="button"
-                                onClick={() => updateRemoveQuantity(product, -1)}
-                                disabled={removeQuantity <= 1}
-                                className="grid h-9 w-8 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#F7E8DD] disabled:cursor-not-allowed disabled:opacity-40"
-                              >
-                                <Minus className="h-3.5 w-3.5" />
-                              </button>
+                          {cartQuantity > 1 && (
+                            <div className="flex items-center gap-2 rounded-full border border-[#E5D8C2]/80 bg-white/60 px-2 py-1 shadow-sm">
+                              <span className="pl-2 text-[10px] font-medium text-[#4A3832]/50">
+                                Remove qty
+                              </span>
+                              <div className="flex h-8 items-center rounded-full border border-[#B89A5E]/28 bg-[#FFFDF9]">
+                                <button
+                                  type="button"
+                                  onClick={() => updateRemoveQuantity(product, -1)}
+                                  disabled={removeQuantity <= 1}
+                                  className="grid h-8 w-8 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#F7E8DD] disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                  <Minus className="h-3.5 w-3.5" />
+                                </button>
 
-                              <motion.span
-                                key={removeQuantity}
-                                initial={{ opacity: 0, y: 5 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.14 }}
-                                className="min-w-6 text-center text-xs font-semibold text-[#1B1411]"
-                              >
-                                {removeQuantity}
-                              </motion.span>
+                                <motion.span
+                                  key={removeQuantity}
+                                  initial={{ opacity: 0, y: 5 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ duration: 0.14 }}
+                                  className="min-w-6 text-center text-xs font-semibold text-[#1B1411]"
+                                >
+                                  {removeQuantity}
+                                </motion.span>
 
-                              <button
-                                type="button"
-                                onClick={() => updateRemoveQuantity(product, 1)}
-                                disabled={removeQuantity >= cartQuantity}
-                                className="grid h-9 w-8 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#F7E8DD] disabled:cursor-not-allowed disabled:opacity-40"
-                              >
-                                <Plus className="h-3.5 w-3.5" />
-                              </button>
+                                <button
+                                  type="button"
+                                  onClick={() => updateRemoveQuantity(product, 1)}
+                                  disabled={removeQuantity >= cartQuantity}
+                                  className="grid h-8 w-8 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#F7E8DD] disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                  <Plus className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
                             </div>
-
-                            <motion.button
-                              type="button"
-                              whileTap={{ scale: 0.94 }}
-                              disabled={removingProductId === product.id}
-                              onClick={() => handleRemoveQuantity(product)}
-                              className="rounded-full bg-[#1B1411] px-4 py-2 text-xs font-semibold text-[#FFF8EF] shadow-lg shadow-black/10 transition hover:bg-[#B89A5E] hover:text-[#1B1411] disabled:cursor-wait disabled:opacity-70"
-                            >
-                              {removingProductId === product.id ? "Removing..." : "Remove"}
-                            </motion.button>
-                          </div>
+                          )}
                         </div>
                       </motion.div>
                     );
@@ -2132,44 +2441,153 @@ function CartDrawer({
               )}
             </div>
 
-            <div className="border-t border-[#B89A5E]/20 pt-5">
-              <div className="mb-3 flex justify-between text-sm text-[#1B1411]/65">
-                <span>Total items</span>
-                <span>
-                  {cartCount} {itemLabel}
-                </span>
+            <div className="relative z-10 border-t border-[#D8C7A3]/35 bg-[linear-gradient(180deg,rgba(255,251,246,0.86),rgba(255,248,239,0.98))] px-7 py-5 shadow-[0_-18px_50px_rgba(27,20,17,0.07)] backdrop-blur-xl">
+              <div className="mb-4 overflow-hidden rounded-[1.55rem] border border-[#E2D2B2]/65 bg-white/58 p-4 shadow-[0_14px_36px_rgba(27,20,17,0.045)]">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-[#8A6A3F]">
+                      Order Summary
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-[#4A3832]/55">
+                      Taxes and delivery are calculated later.
+                    </p>
+                  </div>
+                  <div className="grid h-10 w-10 place-items-center rounded-full border border-[#E6DABD]/75 bg-white/70 text-[#8A6A3F] shadow-sm">
+                    <ShieldCheck className="h-4.5 w-4.5" />
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-sm text-[#4A3832]/68">
+                  <div className="flex items-center justify-between gap-4">
+                    <span>Total cart</span>
+                    <span>
+                      {cartCount} {itemLabel} · {formatPrice(subtotal)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <span>Selected</span>
+                    <span>
+                      {selectedItemCount} {selectedItemLabel}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex items-end justify-between gap-4 border-t border-[#DCCCAE]/45 pt-3">
+                  <span className="text-sm font-semibold text-[#1B1411]">
+                    Selected subtotal
+                  </span>
+                  <motion.span
+                    key={selectedSubtotal}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.18 }}
+                    className="font-serif text-[2.25rem] leading-none text-[#1B1411]"
+                  >
+                    {formatPrice(selectedSubtotal)}
+                  </motion.span>
+                </div>
               </div>
 
-              <div className="mb-5 flex justify-between text-[#1B1411]">
-                <span>Subtotal</span>
-                <span className="font-serif text-2xl">
-                  {formatPrice(subtotal)}
-                </span>
-              </div>
-
-              {checkoutNotice && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  className={`mb-4 rounded-2xl border px-4 py-3 text-sm ${
-                    checkoutNotice.type === "success"
-                      ? "border-[#B89A5E]/30 bg-[#CFE9DF]/60 text-[#1B1411]"
-                      : "border-[#F4C6D3]/60 bg-[#F4C6D3]/45 text-[#1B1411]"
-                  }`}
-                >
-                  {checkoutNotice.message}
-                </motion.div>
-              )}
+              <AnimatePresence>
+                {checkoutNotice && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    className={`mb-4 rounded-[1.35rem] border px-4 py-3 text-sm shadow-sm ${
+                      checkoutNotice.type === "success"
+                        ? "border-[#CFE9DF]/65 bg-[#E0F0EA]/88 text-[#1B1411]"
+                        : "border-[#F4C6D3]/70 bg-[#FAE0E7]/80 text-[#1B1411]"
+                    }`}
+                  >
+                    {checkoutNotice.message}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <motion.button
                 type="button"
-                whileTap={{ scale: 0.97 }}
-                onClick={onCheckout}
-                disabled={cart.length === 0 || isCheckingOut}
-                className="w-full rounded-full bg-[#1B1411] px-6 py-4 text-sm font-medium text-[#FFF8EF] transition hover:bg-[#B89A5E] hover:text-[#1B1411] disabled:cursor-not-allowed disabled:opacity-50"
+                whileHover={
+                  selectedItemCount > 0 && !isCheckingOut
+                    ? { scale: 1.015, y: -1 }
+                    : undefined
+                }
+                whileTap={{ scale: 0.96 }}
+                animate={
+                  isCheckingOut
+                    ? {
+                        scale: [1, 1.025, 1],
+                        boxShadow: [
+                          "0 18px 45px rgba(184, 154, 94, 0.16)",
+                          "0 24px 70px rgba(184, 154, 94, 0.35)",
+                          "0 18px 45px rgba(184, 154, 94, 0.16)",
+                        ],
+                      }
+                    : {
+                        scale: 1,
+                        boxShadow: "0 18px 42px rgba(27, 20, 17, 0.16)",
+                      }
+                }
+                transition={
+                  isCheckingOut
+                    ? { duration: 1.15, repeat: Infinity, ease: "easeInOut" }
+                    : { duration: 0.22, ease: "easeOut" }
+                }
+                onClick={handleCheckoutSelected}
+                disabled={selectedItemCount === 0 || isCheckingOut}
+                className="relative w-full overflow-hidden rounded-full bg-[linear-gradient(135deg,#1B1411,#2A1E1A,#1B1411)] px-6 py-4 text-sm font-semibold text-[#FFF8EF] transition hover:text-[#FFF8EF] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isCheckingOut ? "Placing Order..." : "Secure Checkout"}
+                <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.14),transparent_36%)]" />
+                <span className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-[#D9C7A5]/75 to-transparent" />
+
+                <AnimatePresence>
+                  {isCheckingOut && (
+                    <motion.span
+                      initial={{ x: "-120%" }}
+                      animate={{ x: "120%" }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 1.05, repeat: Infinity, ease: "linear" }}
+                      className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/25 to-transparent"
+                    />
+                  )}
+                </AnimatePresence>
+
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  <AnimatePresence mode="wait" initial={false}>
+                    {isCheckingOut ? (
+                      <motion.span
+                        key="checking-out"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.18 }}
+                        className="flex items-center justify-center gap-2"
+                      >
+                        <motion.span
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}
+                          className="h-4 w-4 rounded-full border-2 border-[#FFF8EF]/35 border-t-[#D9C7A5]"
+                        />
+                        Securing selected pearls...
+                      </motion.span>
+                    ) : (
+                      <motion.span
+                        key="secure-checkout"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.18 }}
+                        className="flex items-center justify-center gap-2"
+                      >
+                        <CreditCard className="h-4 w-4" />
+                        {selectedItemCount > 0
+                          ? `Secure checkout · ${selectedItemCount} selected ${selectedItemLabel}`
+                          : "Select pieces to checkout"}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </span>
               </motion.button>
             </div>
           </motion.aside>
@@ -2253,11 +2671,14 @@ function About() {
 export default function PEARLfectlyPearlsWebsite() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const [wishlistOpen, setWishlistOpen] = useState(false);
   const [quickView, setQuickView] = useState(null);
   const [quickViewSource, setQuickViewSource] = useState(null);
   const [products, setProducts] = useState([]);
 
   const [cart, setCart] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
+  const [wishlistLoaded, setWishlistLoaded] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [checkoutNotice, setCheckoutNotice] = useState(null);
 
@@ -2265,6 +2686,67 @@ export default function PEARLfectlyPearlsWebsite() {
     (sum, item) => sum + (item.cartQuantity ?? 1),
     0
   );
+
+  const wishlistProducts = wishlist.map((savedProduct) => {
+    const latestProduct = products.find(
+      (product) => String(product.id) === String(savedProduct.id)
+    );
+
+    return latestProduct ? { ...savedProduct, ...latestProduct } : savedProduct;
+  });
+
+  const wishlistCount = wishlist.length;
+
+  useEffect(() => {
+    try {
+      const savedWishlist = window.localStorage.getItem("pearlfectly-wishlist");
+      const parsedWishlist = savedWishlist ? JSON.parse(savedWishlist) : [];
+
+      if (Array.isArray(parsedWishlist)) {
+        setWishlist(parsedWishlist);
+      }
+    } catch (error) {
+      console.error("Unable to load wishlist", error);
+    } finally {
+      setWishlistLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!wishlistLoaded) return;
+
+    window.localStorage.setItem(
+      "pearlfectly-wishlist",
+      JSON.stringify(wishlist)
+    );
+  }, [wishlist, wishlistLoaded]);
+
+  const isWishlisted = (product) =>
+    wishlist.some((item) => String(item.id) === String(product.id));
+
+  const toggleWishlist = (product) => {
+    setWishlist((prev) => {
+      const exists = prev.some((item) => String(item.id) === String(product.id));
+
+      if (exists) {
+        return prev.filter((item) => String(item.id) !== String(product.id));
+      }
+
+      return [
+        {
+          ...product,
+          cartQuantity: undefined,
+        },
+        ...prev,
+      ];
+    });
+  };
+
+  const removeFromWishlist = (productId) => {
+    setWishlist((prev) =>
+      prev.filter((item) => String(item.id) !== String(productId))
+    );
+  };
 
   const addToCart = (product, quantity = 1) => {
     const stock = Number(product.stock ?? 0);
@@ -2301,13 +2783,15 @@ export default function PEARLfectlyPearlsWebsite() {
     });
   };
 
-  const handleCheckout = async () => {
-    if (cart.length === 0 || isCheckingOut) return;
+  const handleCheckout = async (selectedCartItems = cart) => {
+    if (selectedCartItems.length === 0 || isCheckingOut) return;
 
     setIsCheckingOut(true);
     setCheckoutNotice(null);
 
-    const items = cart.map((item) => ({
+    const selectedIds = selectedCartItems.map((item) => String(item.id));
+
+    const items = selectedCartItems.map((item) => ({
       id: item.id,
       name: item.name,
       category: item.category,
@@ -2316,6 +2800,11 @@ export default function PEARLfectlyPearlsWebsite() {
       image: item.image,
       metal: item.metal,
     }));
+
+    const selectedItemCount = items.reduce(
+      (sum, item) => sum + item.quantity,
+      0
+    );
 
     const total = items.reduce(
       (sum, item) => sum + item.price * item.quantity,
@@ -2332,7 +2821,7 @@ export default function PEARLfectlyPearlsWebsite() {
           customerName: "Guest Customer",
           customerEmail: "guest@example.com",
           items,
-          itemCount: cartCount,
+          itemCount: selectedItemCount,
           total,
         }),
       });
@@ -2343,12 +2832,14 @@ export default function PEARLfectlyPearlsWebsite() {
 
       const order = await response.json();
 
-      setCart([]);
+      setCart((prev) =>
+        prev.filter((item) => !selectedIds.includes(String(item.id)))
+      );
       await loadProducts();
 
       setCheckoutNotice({
         type: "success",
-        message: `Order ${order.orderNumber} placed successfully.`,
+        message: `Order ${order.orderNumber} placed successfully. Unselected items stayed in your cart.`,
       });
 
       setTimeout(() => {
@@ -2440,15 +2931,17 @@ export default function PEARLfectlyPearlsWebsite() {
         <Navbar
           onSearch={() => setSearchOpen(true)}
           onCart={() => setCartOpen(true)}
+          onWishlist={() => setWishlistOpen(true)}
           cartCount={cartCount}
+          wishlistCount={wishlistCount}
         />
         <Hero />
         <TrustBar />
-        <ProductShowcase products={products} onQuickView={openQuickView} addToCart={addToCart} />
+        <ProductShowcase products={products} onQuickView={openQuickView} addToCart={addToCart} isWishlisted={isWishlisted} onToggleWishlist={toggleWishlist} />
         <FeaturedCollections />
         <About />
         <Craftsmanship />
-        <ProductDetailLayout products={products} addToCart={addToCart} />
+        <ProductDetailLayout products={products} addToCart={addToCart} isWishlisted={isWishlisted} onToggleWishlist={toggleWishlist} />
         <LuxuryExperience />
         <Testimonials />
         <Gallery />
@@ -2456,6 +2949,14 @@ export default function PEARLfectlyPearlsWebsite() {
         <FAQ />
         <Footer />
         <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} onQuickView={openQuickViewFromSearch} onAddToCart={addToCart} products={products} />
+        <WishlistDrawer
+          open={wishlistOpen}
+          onClose={() => setWishlistOpen(false)}
+          wishlist={wishlistProducts}
+          onRemoveItem={removeFromWishlist}
+          onQuickView={openQuickView}
+          onAddToCart={addToCart}
+        />
         <CartDrawer
           open={cartOpen}
           onClose={() => setCartOpen(false)}
