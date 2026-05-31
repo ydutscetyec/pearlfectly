@@ -9,39 +9,62 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (isLoading) return;
+
     setMessage("");
+    setIsLoading(true);
 
-    const response = await fetch("/api/users", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
-    });
+    try {
+      const response = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
 
-    const result = await response.json();
-    if (!response.ok) {
-      setMessage(result.error || "Could not create account.");
-      return;
+      const result = await response.json();
+
+      if (!response.ok) {
+        setMessage(result.error || "Could not create account.");
+        setIsLoading(false);
+        return;
+      }
+
+      const loginResult = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (loginResult?.error) {
+        setMessage("Account created, but automatic login failed. Please sign in.");
+        setIsLoading(false);
+        return;
+      }
+
+      router.push("/admin");
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      setMessage("Something went wrong. Please check your server or Supabase setup.");
+      setIsLoading(false);
     }
-
-    await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    });
-
-    router.push("/");
   };
 
   return (
     <div className="min-h-screen bg-[#FFF8EF] px-6 py-12 text-[#1B1411] dark:bg-[#1B1411] dark:text-[#FFF8EF]">
-      <div className="mx-auto max-w-xl rounded-[3rem] border border-[#B89A5E]/20 bg-[#FFFDF7] p-10 shadow-2xl dark:border-white/10 dark:bg-[#161616]">
-        <h1 className="font-serif text-4xl text-[#1B1411] dark:text-[#FFF8EF]">Create Your Pearl Account</h1>
+      <div className="relative z-10 mx-auto max-w-xl rounded-[3rem] border border-[#B89A5E]/20 bg-[#FFFDF7] p-10 shadow-2xl dark:border-white/10 dark:bg-[#161616]">
+        <h1 className="font-serif text-4xl text-[#1B1411] dark:text-[#FFF8EF]">
+          Create Your Pearl Account
+        </h1>
+
         <p className="mt-3 text-sm text-[#1B1411]/70 dark:text-white/60">
-          Set up a membership and use Google or Facebook to sign in faster.
+          Set up a membership account for Pearlfectly.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
@@ -74,6 +97,7 @@ export default function SignUpPage() {
               onChange={(event) => setPassword(event.target.value)}
               type="password"
               required
+              minLength={6}
               className="mt-2 w-full rounded-[1.5rem] border border-[#B89A5E]/20 bg-[#FFF8EF] px-4 py-3 text-[#1B1411] outline-none focus:border-[#B89A5E]"
             />
           </label>
@@ -82,14 +106,19 @@ export default function SignUpPage() {
 
           <button
             type="submit"
-            className="w-full rounded-full bg-[#1B1411] px-5 py-3 text-sm font-semibold text-[#FFF8EF] transition hover:bg-[#B89A5E] hover:text-[#1B1411]"
+            disabled={isLoading}
+            className="relative z-20 w-full rounded-full bg-[#1B1411] px-5 py-3 text-sm font-semibold text-[#FFF8EF] transition hover:bg-[#B89A5E] hover:text-[#1B1411] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Create account
+            {isLoading ? "Creating account..." : "Create account"}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-[#1B1411]/70 dark:text-white/60">
-          Already have an account? <a href="/signin" className="font-semibold underline">Sign in</a>.
+          Already have an account?{" "}
+          <a href="/signin" className="font-semibold underline">
+            Sign in
+          </a>
+          .
         </p>
       </div>
     </div>

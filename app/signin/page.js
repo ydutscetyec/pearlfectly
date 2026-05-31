@@ -8,6 +8,7 @@ function SignInContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -15,32 +16,44 @@ function SignInContent() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (isLoading) return;
+
     setMessage("");
+    setIsLoading(true);
 
-    const result = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-      callbackUrl,
-    });
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+        callbackUrl,
+      });
 
-    if (result?.error) {
-      setMessage("Invalid email or password. Please try again.");
-      return;
+      if (result?.error) {
+        setMessage("Invalid email or password. Please try again.");
+        setIsLoading(false);
+        return;
+      }
+
+      router.push(callbackUrl);
+      router.refresh();
+    } catch (error) {
+      console.error("SIGN IN ERROR:", error);
+      setMessage("Something went wrong while signing in.");
+      setIsLoading(false);
     }
-
-    router.push(callbackUrl);
   };
 
   return (
     <div className="min-h-screen bg-[#FFF8EF] px-6 py-12 text-[#1B1411] dark:bg-[#1B1411] dark:text-[#FFF8EF]">
-      <div className="mx-auto max-w-xl rounded-[3rem] border border-[#B89A5E]/20 bg-[#FFFDF7] p-10 shadow-2xl dark:border-white/10 dark:bg-[#161616]">
+      <div className="relative z-10 mx-auto max-w-xl rounded-[3rem] border border-[#B89A5E]/20 bg-[#FFFDF7] p-10 shadow-2xl dark:border-white/10 dark:bg-[#161616]">
         <h1 className="font-serif text-4xl text-[#1B1411] dark:text-[#FFF8EF]">
           Sign In
         </h1>
 
         <p className="mt-3 text-sm text-[#1B1411]/70 dark:text-white/60">
-          Continue with email, or use Google / Facebook if configured.
+          Sign in with your Pearlfectly account.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
@@ -70,33 +83,19 @@ function SignInContent() {
 
           <button
             type="submit"
-            className="w-full rounded-full bg-[#1B1411] px-5 py-3 text-sm font-semibold text-[#FFF8EF] transition hover:bg-[#B89A5E] hover:text-[#1B1411]"
+            disabled={isLoading}
+            className="relative z-20 w-full rounded-full bg-[#1B1411] px-5 py-3 text-sm font-semibold text-[#FFF8EF] transition hover:bg-[#B89A5E] hover:text-[#1B1411] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Sign in with email
+            {isLoading ? "Signing in..." : "Sign in with email"}
           </button>
         </form>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => signIn("google", { callbackUrl })}
-            className="rounded-full border border-[#B89A5E]/20 bg-white px-5 py-3 text-sm font-medium text-[#1B1411] transition hover:bg-[#F4F0EB]"
-          >
-            Google
-          </button>
-
-          <button
-            type="button"
-            onClick={() => signIn("facebook", { callbackUrl })}
-            className="rounded-full border border-[#B89A5E]/20 bg-white px-5 py-3 text-sm font-medium text-[#1B1411] transition hover:bg-[#F4F0EB]"
-          >
-            Facebook
-          </button>
-        </div>
-
         <p className="mt-6 text-center text-sm text-[#1B1411]/70 dark:text-white/60">
           New here?{" "}
-          <a href="/signup" className="font-semibold text-[#1B1411] underline">
+          <a
+            href="/signup"
+            className="font-semibold text-[#B89A5E] underline hover:text-[#FFF8EF]"
+          >
             Create an account
           </a>
           .
@@ -110,7 +109,7 @@ export default function SignInPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#FFF8EF] px-6 py-12 text-[#1B1411]">
+        <div className="min-h-screen bg-[#FFF8EF] px-6 py-12 text-[#1B1411] dark:bg-[#1B1411] dark:text-[#FFF8EF]">
           Loading...
         </div>
       }
