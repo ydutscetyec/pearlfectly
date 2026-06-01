@@ -1767,9 +1767,7 @@ function SearchOverlay({ open, onClose, onQuickView, onAddToCart, products }) {
   };
 
   const handleAddToCart = (product, quantity = 1) => {
-    Array.from({ length: quantity }).forEach(() => {
-      onAddToCart?.(product);
-    });
+    onAddToCart?.(product, quantity);
 
     setAddedProductId(product.id);
     setCartNotice(true);
@@ -1871,6 +1869,8 @@ function SearchOverlay({ open, onClose, onQuickView, onAddToCart, products }) {
                   {searchResults.map((product) => {
                     const isAdded = addedProductId === product.id;
                     const quantity = getSearchQuantity(product.id);
+                    const isOutOfStock =
+                      product.stock !== undefined && Number(product.stock) <= 0;
 
                     return (
                       <motion.div
@@ -1931,7 +1931,11 @@ function SearchOverlay({ open, onClose, onQuickView, onAddToCart, products }) {
                               <button
                                 type="button"
                                 onClick={() => updateSearchQuantity(product.id, 1)}
-                                className="grid h-9 w-7 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#F7E8DD]"
+                                disabled={
+                                  product.stock !== undefined &&
+                                  quantity >= Number(product.stock)
+                                }
+                                className="grid h-9 w-7 place-items-center rounded-full text-[#4A3832] transition hover:bg-[#F7E8DD] disabled:cursor-not-allowed disabled:opacity-40"
                                 aria-label={`Increase quantity of ${product.name}`}
                               >
                                 <Plus className="h-3.5 w-3.5" />
@@ -1951,7 +1955,7 @@ function SearchOverlay({ open, onClose, onQuickView, onAddToCart, products }) {
                               whileTap={{ scale: 0.94 }}
                               animate={{ scale: isAdded ? 1.04 : 1 }}
                               transition={{ duration: 0.18, ease: "easeOut" }}
-                              onClick={handleCardAddToCart}
+                              onClick={() => handleAddToCart(product, quantity)}
                               disabled={isOutOfStock}
                               className={`min-w-0 flex-1 overflow-hidden rounded-full px-3 py-2 text-center text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                                 isAdded
