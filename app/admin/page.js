@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -22,6 +22,7 @@ import {
   Sparkles,
   ArrowRight,
   ShieldCheck,
+  LogOut,
 } from "lucide-react";
 
 function formatPrice(value) {
@@ -72,7 +73,7 @@ function SectionLabel({ children }) {
   );
 }
 
-function AdminHeader({ activeTab, setActiveTab, products, orders }) {
+function AdminHeader({ activeTab, setActiveTab, products, orders, session, onSignOut }) {
   const tabs = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "inventory", label: "Inventory", icon: Package },
@@ -123,17 +124,28 @@ function AdminHeader({ activeTab, setActiveTab, products, orders }) {
             })}
           </nav>
 
-          <div className="flex items-center gap-3 lg:justify-end">
-            <div className="hidden rounded-full border border-[#B89A5E]/20 bg-[#FFFDF7]/75 px-4 py-2 text-xs font-medium text-[#4A3832]/70 sm:block">
+          <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+            <div className="hidden rounded-full border border-[#B89A5E]/20 bg-[#FFFDF7]/75 px-4 py-2 text-xs font-medium text-[#4A3832]/70 xl:block">
               {products.length} products · {orders.length} orders
+            </div>
+            <div className="hidden min-w-0 max-w-[220px] rounded-full border border-[#B89A5E]/20 bg-[#FFFDF7]/75 px-4 py-2 text-xs font-medium text-[#4A3832]/70 sm:block">
+              <span className="block truncate">{session?.user?.name || session?.user?.email}</span>
             </div>
             <a
               href="/"
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-[#B89A5E]/35 bg-[#FFFDF7]/75 px-5 py-3 text-sm font-semibold text-[#4A3832] transition hover:bg-[#1B1411] hover:text-[#FFF8EF]"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-[#B89A5E]/35 bg-[#FFFDF7]/75 px-4 py-3 text-sm font-semibold text-[#4A3832] transition hover:bg-[#1B1411] hover:text-[#FFF8EF]"
             >
               <Eye className="h-4 w-4" />
               View Shop
             </a>
+            <button
+              type="button"
+              onClick={onSignOut}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1B1411] px-4 py-3 text-sm font-semibold text-[#FFF8EF] shadow-lg shadow-black/10 transition hover:bg-[#B89A5E] hover:text-[#1B1411]"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </button>
           </div>
         </div>
       </div>
@@ -306,8 +318,11 @@ export default function AdminInventoryPage() {
   }, [status, session, router, pathname]);
 
   useEffect(() => {
+    if (status !== "authenticated" || !session?.user?.isAdmin) return;
+
     async function loadData() {
       try {
+        setLoading(true);
         const [productsRes, ordersRes] = await Promise.all([
           fetch("/api/products", { cache: "no-store" }),
           fetch("/api/orders", { cache: "no-store" }),
@@ -331,7 +346,7 @@ export default function AdminInventoryPage() {
     }
 
     loadData();
-  }, []);
+  }, [status, session]);
 
   function showToast(type, message) {
     setToast({ type, message });
@@ -571,7 +586,7 @@ export default function AdminInventoryPage() {
   return (
     <main className="relative min-h-screen overflow-hidden text-[#1B1411]">
       <AdminBackground />
-      <AdminHeader activeTab={activeTab} setActiveTab={setActiveTab} products={products} orders={orders} />
+      <AdminHeader activeTab={activeTab} setActiveTab={setActiveTab} products={products} orders={orders} session={session} onSignOut={() => signOut({ callbackUrl: "/" })} />
 
       <section className="mx-auto max-w-[1720px] px-5 py-8 sm:px-8 lg:px-10">
         {activeTab === "dashboard" && (

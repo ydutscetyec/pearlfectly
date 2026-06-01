@@ -1,27 +1,22 @@
 import { NextResponse } from "next/server";
-import { updateProduct, deleteProduct } from "../../../../lib/db";
+import { addProduct, getProducts } from "../../../lib/db";
+import { requireAdminUser } from "../../../lib/auth";
 
-export async function PUT(request, context) {
-  const { id: idParam } = await context.params;
-  const id = Number(idParam);
-  const body = await request.json();
-  const updated = await updateProduct(id, body);
-
-  if (!updated) {
-    return NextResponse.json({ error: "Product not found" }, { status: 404 });
-  }
-
-  return NextResponse.json(updated);
+export async function GET() {
+  const products = await getProducts();
+  return NextResponse.json(products);
 }
 
-export async function DELETE(request, context) {
-  const { id: idParam } = await context.params;
-  const id = Number(idParam);
-  const deleted = await deleteProduct(id);
-
-  if (!deleted) {
-    return NextResponse.json({ error: "Product not found" }, { status: 404 });
+export async function POST(request) {
+  try {
+    await requireAdminUser();
+    const body = await request.json();
+    const product = await addProduct(body);
+    return NextResponse.json(product, { status: 201 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error.message || "Unable to add product." },
+      { status: error.status || 500 }
+    );
   }
-
-  return NextResponse.json({ success: true });
 }

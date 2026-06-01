@@ -1,6 +1,7 @@
 "use client"; 
 
 import React, { useState, useEffect, useRef } from "react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -323,7 +324,7 @@ function LuxuryButton({ children, variant = "primary", className = "", onClick, 
   );
 }
 
-function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0 }) {
+function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0, onAccount, session, authStatus }) {
   const [open, setOpen] = useState(false);
   const [mega, setMega] = useState(false);
 
@@ -477,6 +478,11 @@ function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0
       : "text-[#4A3832] drop-shadow-[0_1px_8px_rgba(255,248,239,0.85)] hover:bg-[#4A3832]/15"
   } transition duration-300 hover:text-[#FFF8EF] group-hover/nav:text-[#FFF8EF] group-hover/nav:drop-shadow-none group-focus-within/nav:text-[#FFF8EF] group-focus-within/nav:drop-shadow-none`;
 
+  const isSignedIn = authStatus === "authenticated" && session?.user;
+  const profileLabel = isSignedIn
+    ? `Open ${session.user.name || session.user.email}'s profile`
+    : "Open account options";
+
   return (
     <>
       <AnimatePresence>
@@ -526,12 +532,21 @@ function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0
           </a>
 
           <div className="absolute right-0 hidden items-center gap-4 sm:flex">
-            <button className={iconButton} aria-label="Account">
+            <button
+              type="button"
+              onClick={onAccount}
+              className={`relative ${iconButton}`}
+              aria-label={profileLabel}
+              title={isSignedIn ? session.user.name || session.user.email : "Sign in / Sign up"}
+            >
               <UserRound className="h-4 w-4 stroke-[1.6]" />
+              {isSignedIn && (
+                <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border border-[#FFF8EF] bg-[#CFE9DF]" />
+              )}
             </button>
-            <button className={iconButton} aria-label="Messages">
+            <a href="mailto:hello@pearlfectly.com" className={iconButton} aria-label="Message Pearlfectly">
               <MessageCircle className="h-4 w-4 stroke-[1.6]" />
-            </button>
+            </a>
             <button
               type="button"
               onClick={onWishlist}
@@ -703,12 +718,23 @@ function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0
                 <button onClick={onSearch} className="grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Search">
                   <Search className="h-4 w-4" />
                 </button>
-                <button className="grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Account">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    onAccount?.();
+                  }}
+                  className="relative grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]"
+                  aria-label={profileLabel}
+                >
                   <UserRound className="h-4 w-4" />
+                  {isSignedIn && (
+                    <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#9CCDC0]" />
+                  )}
                 </button>
-                <button className="grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Messages">
+                <a href="mailto:hello@pearlfectly.com" className="grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Message Pearlfectly">
                   <MessageCircle className="h-4 w-4" />
-                </button>
+                </a>
                 <button onClick={onWishlist} className="relative grid h-12 place-items-center rounded-full border border-[#B89A5E]/30 text-[#1B1411]" aria-label="Open wishlist">
                   <Heart className={`h-5 w-5 ${wishlistCount > 0 ? "fill-[#1B1411]" : ""}`} />
                   {wishlistCount > 0 && (
@@ -2065,6 +2091,137 @@ function WishlistDrawer({
   );
 }
 
+function AccountDrawer({ open, onClose, session, authStatus }) {
+  const user = session?.user;
+  const isSignedIn = authStatus === "authenticated" && user;
+  const initials = (user?.name || user?.email || "P")
+    .split(/\s|@/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("") || "P";
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[74] bg-[#1B1411]/52 backdrop-blur-md"
+          onClick={onClose}
+        >
+          <motion.aside
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 28, stiffness: 220 }}
+            onClick={(event) => event.stopPropagation()}
+            className="ml-auto flex h-full w-full max-w-md flex-col overflow-hidden border-l border-[#B89A5E]/25 bg-[#FFF8EF]/96 shadow-2xl shadow-black/20 backdrop-blur-xl"
+          >
+            <div className="relative overflow-hidden border-b border-[#B89A5E]/20 p-7">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-[#CFE9DF]/55 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full bg-[#F4C6D3]/45 blur-3xl" />
+              <div className="relative flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#8A6A3F]">
+                    Pearl Profile
+                  </p>
+                  <h2 className="mt-2 font-serif text-4xl leading-tight text-[#1B1411]">
+                    {isSignedIn ? "Welcome back" : "Your account"}
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="grid h-10 w-10 place-items-center rounded-full bg-[#F7E8DD] text-[#1B1411] transition hover:bg-[#1B1411] hover:text-[#FFF8EF]"
+                  aria-label="Close account panel"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 space-y-5 overflow-y-auto p-7">
+              {isSignedIn ? (
+                <>
+                  <div className="rounded-[2rem] border border-[#B89A5E]/20 bg-[#FFFDF7]/82 p-5 shadow-xl shadow-black/5">
+                    <div className="flex items-center gap-4">
+                      <div className="grid h-16 w-16 place-items-center rounded-full border border-[#B89A5E]/35 bg-[radial-gradient(circle_at_35%_30%,#FFFFFF,#F7E8DD)] font-serif text-2xl text-[#4A3832] shadow-md">
+                        {initials}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate font-serif text-2xl text-[#1B1411]">
+                          {user.name || "Pearl Client"}
+                        </p>
+                        <p className="truncate text-sm text-[#4A3832]/65">{user.email}</p>
+                        {user.isAdmin && (
+                          <span className="mt-2 inline-flex rounded-full bg-[#CFE9DF]/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#1B1411]">
+                            Admin
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3">
+                    {user.isAdmin && (
+                      <a
+                        href="/admin"
+                        className="inline-flex items-center justify-between rounded-full border border-[#B89A5E]/30 bg-[#FFFDF7]/82 px-5 py-3 text-sm font-semibold text-[#4A3832] transition hover:bg-[#1B1411] hover:text-[#FFF8EF]"
+                      >
+                        Open Admin Atelier <ArrowRight className="h-4 w-4" />
+                      </a>
+                    )}
+                    <a
+                      href="/#shop"
+                      onClick={onClose}
+                      className="inline-flex items-center justify-between rounded-full border border-[#B89A5E]/30 bg-[#FFFDF7]/82 px-5 py-3 text-sm font-semibold text-[#4A3832] transition hover:bg-[#CFE9DF]/80"
+                    >
+                      Continue Shopping <ShoppingBag className="h-4 w-4" />
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => signOut({ callbackUrl: "/" })}
+                      className="inline-flex items-center justify-center rounded-full bg-[#1B1411] px-5 py-3 text-sm font-semibold text-[#FFF8EF] transition hover:bg-[#B89A5E] hover:text-[#1B1411]"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="rounded-[2rem] border border-[#B89A5E]/20 bg-[#FFFDF7]/82 p-6 text-center shadow-xl shadow-black/5">
+                  <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-full bg-[#CFE9DF]/70 text-[#1B1411]">
+                    <UserRound className="h-7 w-7" />
+                  </div>
+                  <h3 className="font-serif text-3xl text-[#1B1411]">Sign in to checkout</h3>
+                  <p className="mx-auto mt-3 max-w-xs text-sm leading-6 text-[#4A3832]/65">
+                    Create an account or sign in so your order uses your real customer profile instead of a guest checkout.
+                  </p>
+                  <div className="mt-6 grid gap-3">
+                    <a
+                      href="/signin?callbackUrl=/"
+                      className="rounded-full bg-[#1B1411] px-5 py-3 text-sm font-semibold text-[#FFF8EF] transition hover:bg-[#B89A5E] hover:text-[#1B1411]"
+                    >
+                      Sign in
+                    </a>
+                    <a
+                      href="/signup?callbackUrl=/"
+                      className="rounded-full border border-[#B89A5E]/35 bg-[#FFF8EF] px-5 py-3 text-sm font-semibold text-[#4A3832] transition hover:bg-[#CFE9DF]/75"
+                    >
+                      Create account
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.aside>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 function CartDrawer({
   open,
   onClose,
@@ -2669,9 +2826,11 @@ function About() {
 }
 
 export default function PEARLfectlyPearlsWebsite() {
+  const { data: session, status: authStatus } = useSession();
   const [searchOpen, setSearchOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [wishlistOpen, setWishlistOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [quickView, setQuickView] = useState(null);
   const [quickViewSource, setQuickViewSource] = useState(null);
   const [products, setProducts] = useState([]);
@@ -2786,6 +2945,15 @@ export default function PEARLfectlyPearlsWebsite() {
   const handleCheckout = async (selectedCartItems = cart) => {
     if (selectedCartItems.length === 0 || isCheckingOut) return;
 
+    if (authStatus !== "authenticated" || !session?.user) {
+      setCheckoutNotice({
+        type: "error",
+        message: "Please sign in or create an account before checkout.",
+      });
+      setAccountOpen(true);
+      return;
+    }
+
     setIsCheckingOut(true);
     setCheckoutNotice(null);
 
@@ -2818,8 +2986,8 @@ export default function PEARLfectlyPearlsWebsite() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          customerName: "Guest Customer",
-          customerEmail: "guest@example.com",
+          customerName: session.user.name || session.user.email || "Pearl Client",
+          customerEmail: session.user.email || "client@example.com",
           items,
           itemCount: selectedItemCount,
           total,
@@ -2839,7 +3007,7 @@ export default function PEARLfectlyPearlsWebsite() {
 
       setCheckoutNotice({
         type: "success",
-        message: `Order ${order.orderNumber} placed successfully. Unselected items stayed in your cart.`,
+        message: `Order ${order.orderNumber} placed successfully for ${session.user.name || session.user.email}. Unselected items stayed in your cart.`,
       });
 
       setTimeout(() => {
@@ -2932,8 +3100,11 @@ export default function PEARLfectlyPearlsWebsite() {
           onSearch={() => setSearchOpen(true)}
           onCart={() => setCartOpen(true)}
           onWishlist={() => setWishlistOpen(true)}
+          onAccount={() => setAccountOpen(true)}
           cartCount={cartCount}
           wishlistCount={wishlistCount}
+          session={session}
+          authStatus={authStatus}
         />
         <Hero />
         <TrustBar />
@@ -2956,6 +3127,12 @@ export default function PEARLfectlyPearlsWebsite() {
           onRemoveItem={removeFromWishlist}
           onQuickView={openQuickView}
           onAddToCart={addToCart}
+        />
+        <AccountDrawer
+          open={accountOpen}
+          onClose={() => setAccountOpen(false)}
+          session={session}
+          authStatus={authStatus}
         />
         <CartDrawer
           open={cartOpen}

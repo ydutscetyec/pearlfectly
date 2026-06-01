@@ -1,29 +1,34 @@
 import { NextResponse } from "next/server";
-import { getOrders, writeOrders, getProducts, writeProducts } from "../../../lib/db";
+import { addOrder, getOrders, getProducts, updateProductsAfterCheckout } from "../../../lib/db";
+import { requireAdminUser, requireSignedInUser } from "../../../lib/auth";
 
 export async function GET() {
-  const orders = await getOrders();
-  return NextResponse.json(orders);
+  try {
+    await requireAdminUser();
+    const orders = await getOrders();
+    return NextResponse.json(orders);
+  } catch (error) {
+    return NextResponse.json(
+      { message: error.message || "Unable to load orders." },
+      { status: error.status || 500 }
+    );
+  }
 }
 
 export async function POST(request) {
   try {
+    const user = await requireSignedInUser();
     const body = await request.json();
     const rawItems = Array.isArray(body.items) ? body.items : [];
 
     if (rawItems.length === 0) {
-      return NextResponse.json(
-        { message: "Cart is empty." },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Cart is empty." }, { status: 400 });
     }
 
     const products = await getProducts();
 
     const lineItems = rawItems.map((item) => {
-      const product = products.find(
-        (product) => String(product.id) === String(item.id)
-      );
+      const product = products.find((product) => String(product.id) === String(item.id));
 
       if (!product) {
         const error = new Error(`Product not found: ${item.name || item.id}`);
@@ -31,17 +36,11 @@ export async function POST(request) {
         throw error;
       }
 
-      const quantity = Math.max(
-        1,
-        Number(item.quantity ?? item.cartQuantity ?? 1)
-      );
-
+      const quantity = Math.max(1, Number(item.quantity ?? item.cartQuantity ?? 1));
       const currentStock = Number(product.stock ?? 0);
 
       if (currentStock < quantity) {
-        const error = new Error(
-          `Only ${currentStock} stock left for ${product.name}.`
-        );
+        const error = new Error(`Only ${currentStock} stock left for ${product.name}.`);
         error.status = 409;
         throw error;
       }
@@ -60,57 +59,24 @@ export async function POST(request) {
       };
     });
 
-    const updatedProducts = products.map((product) => {
-      const orderedItem = lineItems.find(
-        (item) => String(item.id) === String(product.id)
-      );
+    const itemCount = lineItems.reduce((sum, item) => sum + item.quantity, 0);
+    const total = lineItems.reduce((sum, item) => sum + item.subtotal, 0);
+    const orderId = Date.now();
 
-      if (!orderedItem) return product;
+    await updateProductsAfterCheckout(lineItems);
 
-      const nextStock = Math.max(
-        0,
-        Number(product.stock ?? 0) - orderedItem.quantity
-      );
-
-      return {
-        ...product,
-        stock: nextStock,
-        status:
-          nextStock <= 0
-            ? "Out of Stock"
-            : nextStock <= 5
-            ? "Low Stock"
-            : "Active",
-      };
-    });
-
-    const orders = await getOrders();
-
-    const itemCount = lineItems.reduce(
-      (sum, item) => sum + item.quantity,
-      0
-    );
-
-    const total = lineItems.reduce(
-      (sum, item) => sum + item.subtotal,
-      0
-    );
-
-    const newOrder = {
-      id: Date.now(),
-      orderNumber: `PF-${Date.now()}`,
-      customer: body.customerName || "Guest Customer",
-      customerName: body.customerName || "Guest Customer",
-      customerEmail: body.customerEmail || "guest@example.com",
+    const newOrder = await addOrder({
+      id: orderId,
+      orderNumber: `PF-${orderId}`,
+      customer: user.name || user.email || "Pearl Client",
+      customerName: user.name || user.email || "Pearl Client",
+      customerEmail: user.email || body.customerEmail || "client@example.com",
       items: lineItems,
       itemCount,
       total,
       status: "Pending",
       date: new Date().toISOString(),
-    };
-
-    await writeProducts(updatedProducts);
-    await writeOrders([newOrder, ...orders]);
+    });
 
     return NextResponse.json(newOrder, { status: 201 });
   } catch (error) {
