@@ -826,20 +826,29 @@ function Hero() {
 
                 <div className="my-4 h-px w-full bg-gradient-to-r from-transparent via-[#B89A5E]/35 to-transparent" />
 
-                <div className="space-y-2.5">
-                  <button className="group flex w-full items-center justify-center gap-2 rounded-full border border-[#B89A5E]/40 bg-[#FFF8EF]/70 px-4 py-2 text-xs font-medium text-[#1B1411] transition hover:bg-[#CFE9DF]/70">
+                <div className="relative z-20 space-y-2.5">
+                  <a
+                    href="/signin?callbackUrl=/%23shop"
+                    className="group flex w-full items-center justify-center gap-2 rounded-full border border-[#B89A5E]/40 bg-[#FFF8EF]/70 px-4 py-2 text-xs font-medium text-[#1B1411] transition hover:bg-[#CFE9DF]/70"
+                  >
                     Sign In
                     <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-                  </button>
+                  </a>
 
-                  <button className="group flex w-full items-center justify-center gap-2 rounded-full bg-[#1B1411] px-4 py-2 text-xs font-medium text-[#FFF8EF] shadow-lg shadow-black/10 transition hover:bg-[#B89A5E] hover:text-[#1B1411]">
+                  <a
+                    href="/signup?callbackUrl=/%23shop"
+                    className="group flex w-full items-center justify-center gap-2 rounded-full bg-[#1B1411] px-4 py-2 text-xs font-medium text-[#FFF8EF] shadow-lg shadow-black/10 transition hover:bg-[#B89A5E] hover:text-[#1B1411]"
+                  >
                     Create Account
                     <Sparkles className="h-4 w-4" />
-                  </button>
+                  </a>
 
-                  <button className="w-full rounded-full bg-[#CFE9DF]/85 px-4 py-2 text-xs font-medium text-[#1B1411] transition hover:bg-[#F4C6D3]/75">
+                  <a
+                    href="/#shop"
+                    className="block w-full rounded-full bg-[#CFE9DF]/85 px-4 py-2 text-center text-xs font-medium text-[#1B1411] transition hover:bg-[#F4C6D3]/75"
+                  >
                     Continue Viewing
-                  </button>
+                  </a>
                 </div>
 
                 <p className="mt-3 text-center text-[10px] leading-5 text-[#1B1411]/40">
