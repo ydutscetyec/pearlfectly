@@ -759,7 +759,7 @@ function Navbar({ onSearch, onCart, cartCount = 0, onWishlist, wishlistCount = 0
   );
 }
 
-function Hero() {
+function Hero({ isSignedIn }) {
   return (
     <section
       id="home"
@@ -782,19 +782,33 @@ function Hero() {
           transition={{ duration: 1, ease: "easeOut" }}
           className="w-full rounded-[2.25rem] border border-white/60 bg-[#FFF8EF]/72 p-5 shadow-2xl shadow-black/5 backdrop-blur-md lg:p-6"
         >
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,560px)_270px] xl:grid-cols-[minmax(0,610px)_270px] lg:items-center">
-            <div className="min-w-0">
-              <SectionLabel dark>Pearlfectly Pearls</SectionLabel>
+          <div
+            className={
+              isSignedIn
+                ? "grid gap-5 lg:grid-cols-1 lg:items-center"
+                : "grid gap-5 lg:grid-cols-[minmax(0,560px)_270px] xl:grid-cols-[minmax(0,610px)_270px] lg:items-center"
+            }
+          >
+            <div className={isSignedIn ? "mx-auto max-w-3xl text-center" : "min-w-0"}>
+              <div className={isSignedIn ? "flex justify-center" : ""}>
+                <SectionLabel dark>Pearlfectly Pearls</SectionLabel>
+              </div>
 
-              <h1 className="max-w-[590px] pb-2 font-serif text-3xl leading-[1.02] tracking-tight sm:text-4xl lg:text-[48px] xl:text-[52px]">
+              <h1 className="mx-auto max-w-[590px] pb-2 font-serif text-3xl leading-[1.02] tracking-tight sm:text-4xl lg:text-[48px] xl:text-[52px]">
                 Pearls made for soft everyday elegance.
               </h1>
 
-              <p className="mt-4 max-w-lg text-sm leading-6 text-[#1B1411]/75 sm:text-[15px]">
+              <p className="mx-auto mt-4 max-w-lg text-sm leading-6 text-[#1B1411]/75 sm:text-[15px]">
                 Discover luminous pearl studs, gift-ready sets, and pastel boxes designed for refined everyday wear and thoughtful gifting.
               </p>
 
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <div
+                className={
+                  isSignedIn
+                    ? "mt-6 flex flex-col justify-center gap-3 sm:flex-row"
+                    : "mt-6 flex flex-col gap-3 sm:flex-row"
+                }
+              >
                 <LuxuryButton href="/#shop" variant="primary">Shop Collection</LuxuryButton>
                 <LuxuryButton href="/#shop" variant="outline" className="text-[#1B1411]">
                   Find Your Pearl Size
@@ -802,60 +816,62 @@ function Hero() {
               </div>
             </div>
 
-            <div className="relative hidden min-h-[280px] w-full max-w-[270px] self-center overflow-hidden rounded-[1.5rem] border border-[#B89A5E]/30 bg-[#FFFDF7]/78 p-5 shadow-2xl shadow-black/5 backdrop-blur-xl lg:flex lg:items-center lg:justify-center">
-              <div className="pointer-events-none absolute -top-16 left-10 h-[160%] w-28 rotate-12 bg-white/35 blur-sm" />
-              <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-[#CFE9DF]/60 blur-2xl" />
-              <div className="pointer-events-none absolute -bottom-14 -left-14 h-36 w-36 rounded-full bg-[#F4C6D3]/45 blur-2xl" />
+            {!isSignedIn && (
+              <div className="relative hidden min-h-[280px] w-full max-w-[270px] self-center overflow-hidden rounded-[1.5rem] border border-[#B89A5E]/30 bg-[#FFFDF7]/78 p-5 shadow-2xl shadow-black/5 backdrop-blur-xl lg:flex lg:items-center lg:justify-center">
+                <div className="pointer-events-none absolute -top-16 left-10 h-[160%] w-28 rotate-12 bg-white/35 blur-sm" />
+                <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-[#CFE9DF]/60 blur-2xl" />
+                <div className="pointer-events-none absolute -bottom-14 -left-14 h-36 w-36 rounded-full bg-[#F4C6D3]/45 blur-2xl" />
 
-              <div className="relative w-full">
-                <div className="mx-auto mb-4 grid h-10 w-10 place-items-center rounded-full border border-[#B89A5E]/30 bg-[#FFF8EF]/90 text-[#B89A5E] shadow-sm">
-                  <UserRound className="h-5 w-5 stroke-[1.5]" />
+                <div className="relative w-full">
+                  <div className="mx-auto mb-4 grid h-10 w-10 place-items-center rounded-full border border-[#B89A5E]/30 bg-[#FFF8EF]/90 text-[#B89A5E] shadow-sm">
+                    <UserRound className="h-5 w-5 stroke-[1.5]" />
+                  </div>
+
+                  <p className="text-center text-[11px] font-semibold uppercase tracking-[0.3em] text-[#8A6A3F]">
+                    Pearl Member Access
+                  </p>
+
+                  <h2 className="mt-2.5 text-center font-serif text-lg text-[#1B1411]">
+                    Welcome Back!
+                  </h2>
+
+                  <p className="mx-auto mt-3 max-w-[220px] text-center text-xs leading-5 text-[#1B1411]/60">
+                    Access your saved pearl sets, gift picks, and recent viewing history.
+                  </p>
+
+                  <div className="my-4 h-px w-full bg-gradient-to-r from-transparent via-[#B89A5E]/35 to-transparent" />
+
+                  <div className="relative z-20 space-y-2.5">
+                    <a
+                      href="/signin?callbackUrl=/%23shop"
+                      className="group flex w-full items-center justify-center gap-2 rounded-full border border-[#B89A5E]/40 bg-[#FFF8EF]/70 px-4 py-2 text-xs font-medium text-[#1B1411] transition hover:bg-[#CFE9DF]/70"
+                    >
+                      Sign In
+                      <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                    </a>
+
+                    <a
+                      href="/signup?callbackUrl=/%23shop"
+                      className="group flex w-full items-center justify-center gap-2 rounded-full bg-[#1B1411] px-4 py-2 text-xs font-medium text-[#FFF8EF] shadow-lg shadow-black/10 transition hover:bg-[#B89A5E] hover:text-[#1B1411]"
+                    >
+                      Create Account
+                      <Sparkles className="h-4 w-4" />
+                    </a>
+
+                    <a
+                      href="/#shop"
+                      className="block w-full rounded-full bg-[#CFE9DF]/85 px-4 py-2 text-center text-xs font-medium text-[#1B1411] transition hover:bg-[#F4C6D3]/75"
+                    >
+                      Continue Viewing
+                    </a>
+                  </div>
+
+                  <p className="mt-3 text-center text-[10px] leading-5 text-[#1B1411]/40">
+                    Soft luxury, saved for your next visit.
+                  </p>
                 </div>
-
-                <p className="text-center text-[11px] font-semibold uppercase tracking-[0.3em] text-[#8A6A3F]">
-                  Pearl Member Access
-                </p>
-
-                <h2 className="mt-2.5 text-center font-serif text-lg text-[#1B1411]">
-                  Welcome Back!
-                </h2>
-
-                <p className="mx-auto mt-3 max-w-[220px] text-center text-xs leading-5 text-[#1B1411]/60">
-                  Access your saved pearl sets, gift picks, and recent viewing history.
-                </p>
-
-                <div className="my-4 h-px w-full bg-gradient-to-r from-transparent via-[#B89A5E]/35 to-transparent" />
-
-                <div className="relative z-20 space-y-2.5">
-                  <a
-                    href="/signin?callbackUrl=/%23shop"
-                    className="group flex w-full items-center justify-center gap-2 rounded-full border border-[#B89A5E]/40 bg-[#FFF8EF]/70 px-4 py-2 text-xs font-medium text-[#1B1411] transition hover:bg-[#CFE9DF]/70"
-                  >
-                    Sign In
-                    <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-                  </a>
-
-                  <a
-                    href="/signup?callbackUrl=/%23shop"
-                    className="group flex w-full items-center justify-center gap-2 rounded-full bg-[#1B1411] px-4 py-2 text-xs font-medium text-[#FFF8EF] shadow-lg shadow-black/10 transition hover:bg-[#B89A5E] hover:text-[#1B1411]"
-                  >
-                    Create Account
-                    <Sparkles className="h-4 w-4" />
-                  </a>
-
-                  <a
-                    href="/#shop"
-                    className="block w-full rounded-full bg-[#CFE9DF]/85 px-4 py-2 text-center text-xs font-medium text-[#1B1411] transition hover:bg-[#F4C6D3]/75"
-                  >
-                    Continue Viewing
-                  </a>
-                </div>
-
-                <p className="mt-3 text-center text-[10px] leading-5 text-[#1B1411]/40">
-                  Soft luxury, saved for your next visit.
-                </p>
               </div>
-            </div>
+            )}
           </div>
         </motion.div>
       </div>
@@ -3115,7 +3131,7 @@ export default function PEARLfectlyPearlsWebsite() {
           session={session}
           authStatus={authStatus}
         />
-        <Hero />
+        <Hero isSignedIn={authStatus === "authenticated" && !!session?.user} />
         <TrustBar />
         <ProductShowcase products={products} onQuickView={openQuickView} addToCart={addToCart} isWishlisted={isWishlisted} onToggleWishlist={toggleWishlist} />
         <FeaturedCollections />
