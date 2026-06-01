@@ -33,6 +33,54 @@ function formatPrice(value) {
   }).format(Number(value) || 0);
 }
 
+function getOrderCustomer(order) {
+  return order.customerName || order.customer || order.customerEmail || "Pearl Client";
+}
+
+function getOrderItemCount(order) {
+  if (Number.isFinite(Number(order.itemCount))) {
+    return Number(order.itemCount);
+  }
+
+  const items = Array.isArray(order.lineItems)
+    ? order.lineItems
+    : Array.isArray(order.items)
+    ? order.items
+    : [];
+
+  return items.reduce((sum, item) => sum + Number(item.quantity || 1), 0);
+}
+
+function getOrderItemsLabel(order) {
+  const items = Array.isArray(order.lineItems)
+    ? order.lineItems
+    : Array.isArray(order.items)
+    ? order.items
+    : [];
+
+  if (items.length === 0) {
+    const count = getOrderItemCount(order);
+    return `${count} item${count === 1 ? "" : "s"}`;
+  }
+
+  return items
+    .map((item) => `${Number(item.quantity || 1)}× ${item.name || "Item"}`)
+    .join(", ");
+}
+
+function formatOrderDate(value) {
+  if (!value) return "—";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 function toNumber(value) {
   return Number(value) || 0;
 }
@@ -549,7 +597,16 @@ export default function AdminInventoryPage() {
       products.forEach((product) => rows.push([product.name, product.category, product.price, product.stock, getStatus(product)]));
     } else {
       rows.push(["Order ID", "Customer", "Items", "Total", "Date", "Status"]);
-      orders.forEach((order) => rows.push([order.id, order.customer, order.items, order.total, order.date, order.status]));
+      orders.forEach((order) =>
+        rows.push([
+          order.orderNumber || order.id,
+          getOrderCustomer(order),
+          getOrderItemsLabel(order),
+          order.total,
+          order.date || order.createdAt,
+          order.status,
+        ])
+      );
     }
 
     const csv = rows.map((row) => row.map((cell) => `"${String(cell ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
@@ -859,11 +916,28 @@ export default function AdminInventoryPage() {
                   <tbody>
                     {filteredOrders.map((order) => (
                       <tr key={order.id} className="rounded-2xl bg-[#FFFDF7]/82 text-sm shadow-sm shadow-black/5">
-                        <td className="rounded-l-2xl px-4 py-4 font-semibold">{order.id}</td>
-                        <td className="px-4 py-4">{order.customer}</td>
-                        <td className="px-4 py-4">{order.items}</td>
+                        <td className="rounded-l-2xl px-4 py-4 font-semibold">
+                          {order.orderNumber || order.id}
+                        </td>
+
+                        <td className="px-4 py-4">
+                          <div>
+                            <p className="font-semibold text-[#1B1411]">{getOrderCustomer(order)}</p>
+                            {order.customerEmail && (
+                              <p className="text-xs text-[#1B1411]/45">{order.customerEmail}</p>
+                            )}
+                          </div>
+                        </td>
+
+                        <td className="max-w-[260px] px-4 py-4 text-[#1B1411]/70">
+                          <span className="line-clamp-2">{getOrderItemsLabel(order)}</span>
+                        </td>
+
                         <td className="px-4 py-4 font-medium">{formatPrice(order.total)}</td>
-                        <td className="px-4 py-4 text-[#1B1411]/60">{order.date ? new Date(order.date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "—"}</td>
+
+                        <td className="px-4 py-4 text-[#1B1411]/60">
+                          {formatOrderDate(order.date || order.createdAt)}
+                        </td>
                         <td className="rounded-r-2xl px-4 py-4">
                           <span className={`rounded-full px-3 py-1 text-xs font-semibold ${order.status === "Completed" ? "bg-[#CFE9DF]/75" : order.status === "Pending" ? "bg-[#F4C6D3]/65" : "bg-[#F7E8DD]"}`}>
                             {order.status}
